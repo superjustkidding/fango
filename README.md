@@ -1,11 +1,26 @@
-amazon
-亚马逊代理
-quickstart
-build
-$ docker build -t amazon .
-start
+# Fango应用说明
+
+### build
+
+```sh
+$ docker build -t fango .
+```
+
+### start
+
+```sh
 $ docker compose -f deploy/compose-dev.yaml up  -d
-stop
+```
+
+### stop
+
+```sh
 $ docker compose -f deploy/docker-compose.yaml -f deploy/docker-compose-dev.yaml stop
-debug
+```
+
+### debug
+
+```sh
 $ docker compose -f deploy/docker-compose.yaml -f deploy/docker-compose-dev.yaml logs -f
+```
+
