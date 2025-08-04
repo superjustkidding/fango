@@ -2,7 +2,7 @@
 # @Time    : 2025/8/5 0:50
 # @Author  : JustKidding
 # @Email   : superjustkidding@gmail.com
-# @File    : restaurant.py.py
+# @File    : restaurant.py
 # @Software: PyCharm
 
 from flask import Blueprint, request, jsonify

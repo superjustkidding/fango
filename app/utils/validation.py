@@ -2,7 +2,7 @@
 # @Time    : 2025/8/5 0:51
 # @Author  : JustKidding
 # @Email   : superjustkidding@gmail.com
-# @File    : validation.py.py
+# @File    : validation.py
 # @Software: PyCharm
 
 from functools import wraps
