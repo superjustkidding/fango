@@ -1,23 +1,66 @@
 from . import db
-from datetime import datetime
+
+# 后期需要将models 根据业务分层
+
+class Restaurant(db.Model):
+    __tablename__ = 'restaurants'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    address = db.Column(db.String(200))
+    phone = db.Column(db.String(20))
+    # 关系定义
+    products = db.relationship('Product', backref='restaurant', lazy=True)
+    internal_users = db.relationship('InternalUser', backref='restaurant', lazy=True)
+
 
 class User(db.Model):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    password_hash = db.Column(db.String(128))
-    role = db.Column(db.String(10), default='user')
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    type = db.Column(db.String(20))  # 'internal' or 'external'
 
-class Meal(db.Model):
+
+class InternalUser(User):
+    __tablename__ = 'internal_users'
+    id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
+    position = db.Column(db.String(50))
+
+
+class ExternalUser(User):
+    __tablename__ = 'external_users'
+    id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    address = db.Column(db.String(200))
+    phone = db.Column(db.String(20))
+
+
+class Product(db.Model):
+    __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120))
-    description = db.Column(db.String(255))
-    price = db.Column(db.Float)
-    image_url = db.Column(db.String(255))
+    name = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    description = db.Column(db.Text)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
+
 
 class Order(db.Model):
+    __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    meal_id = db.Column(db.Integer, db.ForeignKey('meal.id'))
-    quantity = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
     status = db.Column(db.String(20), default='pending')
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    total = db.Column(db.Float)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    # 关系
+    items = db.relationship('OrderItem', backref='order')
+
+
+class OrderItem(db.Model):
+    __tablename__ = 'order_items'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)

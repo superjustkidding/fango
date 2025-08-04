@@ -1,10 +1,15 @@
 services:
   web:
-    build:
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "5000:5000"
     volumes:
-      - ./data
-    networks:
-      bridge
+      - .:/app
+    environment:
+      FLASK_ENV: development
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
