@@ -9,7 +9,7 @@ $ docker build -t fango .
 ### start
 
 ```sh
-$ docker compose -f deploy/compose-dev.yaml up  -d
+$ docker compose -f deploy/docker-compose.yml up  -d
 ```
 
 ### stop
