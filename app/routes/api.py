@@ -14,7 +14,7 @@ from .restaurant import restaurant_bp
 
 api_bp = Blueprint('api', __name__)
 
-# 注册子路由
+# 注册子路由 把实际的业务拆分的过程
 api_bp.register_blueprint(restaurant_bp, url_prefix='/restaurants')  # 餐厅
 # api_bp.register_blueprint(user_bp, url_prefix='/users')   # 用户
 # api_bp.register_blueprint(order_bp, url_prefix='/orders')  # 订单

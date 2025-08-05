@@ -20,6 +20,8 @@ sudo ufw reload
 
 修改模型后的标准流程
 # 1. 生成迁移脚本
+数据库初始化
+flask db init
 flask db migrate -m "Add description to products"
 
 # 2. 检查生成的迁移脚本
