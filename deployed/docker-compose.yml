@@ -7,9 +7,14 @@ services:
       - .:/app
     environment:
       FLASK_ENV: development
-    depends_on:
-      - mysql
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
 volumes:
   mysql-data:
+
+
+networks:
+  docker_bella:
+    external: true

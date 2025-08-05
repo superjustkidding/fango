@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2025/8/5 17:54
+# @Author  : JustKidding
+# @Email   : superjustkidding@gmail.com
+# @File    : __init__.py.py
+# @Software: PyCharm
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from .config import load_config

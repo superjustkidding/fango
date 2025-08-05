@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # 设置工作目录
-WORKDIR /app
+WORKDIR /worker/fango
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
