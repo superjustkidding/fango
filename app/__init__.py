@@ -15,7 +15,7 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-    config = load_config() # 配置
+    config = load_config()  # 配置
     app.config.update(config)
 
     db.init_app(app)   # 数据库配置
