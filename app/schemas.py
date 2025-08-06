@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, validate, validates, ValidationError
 
 
 class RestaurantSchema(Schema):
@@ -14,7 +14,7 @@ class ProductSchema(Schema):
     price = fields.Float(required=True)
     description = fields.Str()
     restaurant_id = fields.Int(required=True)
-
+    image_url = fields.Str(validate=validate.URL(relative=False, error="必须是有效的URL"))
 
 class OrderSchema(Schema):
     id = fields.Int(dump_only=True)

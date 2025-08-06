@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from . import db
 
 # 后期需要将models 根据业务分层
@@ -41,7 +43,33 @@ class Product(db.Model):
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
+    image_url = db.Column(db.String(255))
+    stock = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    category_id = db.Column(db.Integer, db.ForeignKey('p_categories.id'))
+
+    #关联餐厅
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
+    restaurant = db.relationship('Restaurant', backref='products', lazy=True)
+
+class P_Category(db.Model):
+    __tablename__ = 'p_categories'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    icon = db.Column(db.String(255))  # 分类图标URL
+    sort_order = db.Column(db.Integer, default=0)  # 同级排序
+    is_active = db.Column(db.Boolean, default=True)  # 是否启用
+
+    # 关联餐厅
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
+    restaurant = db.relationship('Restaurant', backref='p_categories')
+
+    items = db.relationship('Product', backref='product')
+
+
+
 
 
 class Order(db.Model):
@@ -64,3 +92,6 @@ class OrderItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
+
+
+

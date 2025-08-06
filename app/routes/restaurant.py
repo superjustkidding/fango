@@ -28,3 +28,21 @@ def get_restaurant(id):
     restaurant = Restaurant.query.get_or_404(id)
     return jsonify(schema.dump(restaurant))
 
+@restaurant_bp.route('/<int:id>', methods=['PUT'])
+@validate_request(schema)
+def update_restaurant(id):
+    restaurant = Restaurant.query.get_or_404(id)
+    data = request.validated_data
+    for key, value in data.items():
+        setattr(restaurant, key, value)
+    db.session.commit()
+    return jsonify(schema.dump(restaurant)), 200
+
+
+@restaurant_bp.route('/<int:id>', methods=['DELETE'])
+@validate_request(schema)
+def delete_restaurant(id):
+    restaurant = Restaurant.query.get_or_404(id)
+    db.session.delete(restaurant)
+    db.session.commit()
+    return jsonify(schema.dump(restaurant)), 200
