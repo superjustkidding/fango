@@ -26,7 +26,6 @@ def list_products():
     })
 
 
-
 @products_bp.route('/',methods=['POST'])
 @validate_request(schema)
 def create_products():
@@ -50,9 +49,9 @@ def update_products(id):
     product = Product.query.get_or_404(id)
     data = request.validated_data
     for key, value in data.items():
-        setattr(product,key,value)
+        setattr(product, key, value)
     db.session.commit()
-    return jsonify(schema.dump(product)),200
+    return jsonify(schema.dump(product)), 200
 
 
 @products_bp.route('/<int:id>',methods=['DELETE'])
@@ -61,6 +60,6 @@ def delete_products(id):
     product = Product.query.get_or_404(id)
     db.session.delete(product)
     db.session.commit()
-    return jsonify(schema.dump(product)),200
+    return jsonify(schema.dump(product)), 200
 
 

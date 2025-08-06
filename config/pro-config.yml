@@ -1,0 +1,4 @@
+production:
+  DEBUG: False
+  SECRET_KEY: 'your_prod_secret'
+  SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://root:123456@mysql:3306/fango'

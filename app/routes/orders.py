@@ -14,7 +14,7 @@ def create_orders():
     order = Order(**data)
     db.session.add(order)
     db.session.commit()
-    return jsonify(schema.dump(order)),201
+    return jsonify(schema.dump(order)), 201
 
 # @order_bp.route('/', methods=['GET'])
 # @validate_request(schema)

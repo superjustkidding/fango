@@ -10,7 +10,9 @@
 .idea/*
 cert/*
 conf/settings_dev.py
-config/development-config.yml
+config/dev-config.yml
+config/pro-config.yml
+config/test-config.yml
 deployed/docker-compose-test.yml
 /deployed/mongo/
 /deployed/mysql/
