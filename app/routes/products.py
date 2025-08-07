@@ -8,13 +8,13 @@ from app.utils.validation import validate_request
 products_bp = Blueprint('products', __name__)
 schema = ProductSchema()
 
-@products_bp.route('/<int:id>',methods=['GET'])
+@products_bp.route('/<int:id>', methods=['GET'])
 def get_products(id):
     products = Product.query.get_or_404(id)
     return jsonify(schema.dump(products)),200
 
 
-@products_bp.route('/',methods=['GET'])
+@products_bp.route('/', methods=['GET'])
 def list_products():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)

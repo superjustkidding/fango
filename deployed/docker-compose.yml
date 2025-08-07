@@ -14,7 +14,6 @@ services:
 volumes:
   mysql-data:
 
-
 networks:
   docker_bella:
     external: true
