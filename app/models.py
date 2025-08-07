@@ -1,5 +1,5 @@
 from datetime import datetime
-from extensions import db
+from app import db
 
 # 后期需要将models 根据业务分层
 
