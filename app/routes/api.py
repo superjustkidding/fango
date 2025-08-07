@@ -19,4 +19,3 @@ api_bp.register_blueprint(restaurant_bp, url_prefix='/restaurants')  # 餐厅
 # api_bp.register_blueprint(user_bp, url_prefix='/users')   # 用户
 api_bp.register_blueprint(order_bp, url_prefix='/orders')  # 订单
 api_bp.register_blueprint(products_bp, url_prefix='/products')  # 商品
-

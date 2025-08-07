@@ -4,6 +4,7 @@ from app import db
 from app.models import Product, P_Category
 from app.schemas import ProductSchema
 from app.utils.validation import validate_request
+from lib.ecode import ECode
 
 products_bp = Blueprint('products', __name__)
 schema = ProductSchema()
@@ -11,7 +12,7 @@ schema = ProductSchema()
 @products_bp.route('/<int:id>', methods=['GET'])
 def get_products(id):
     products = Product.query.get_or_404(id)
-    return jsonify(schema.dump(products)), 200
+    return jsonify(schema.dump(products)), ECode.SUCC
 
 
 @products_bp.route('/', methods=['GET'])
@@ -23,7 +24,7 @@ def list_products():
         'items': schema.dump(products.items, many=True),
         'total': products.total,
         'pages': products.pages
-    }), 200
+    }), ECode.SUCC
 
 
 @products_bp.route('/',methods=['POST'])
@@ -60,6 +61,6 @@ def delete_products(id):
     product = Product.query.get_or_404(id)
     db.session.delete(product)
     db.session.commit()
-    return jsonify(schema.dump(product)), 200
+    return jsonify(schema.dump(product)), ECode.SUCC
 
 

@@ -21,4 +21,3 @@ def validate_request(schema):
             return f(*args, **kwargs)
         return wrapper
     return decorator
-

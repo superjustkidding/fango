@@ -2,7 +2,7 @@
 # @Time    : 2025/8/5 17:54
 # @Author  : JustKidding
 # @Email   : superjustkidding@gmail.com
-# @File    : __init__.py.py
+# @File    : __init__.py
 # @Software: PyCharm
 
 from flask import Flask
@@ -25,5 +25,3 @@ def create_app():
     from .routes.api import api_bp  # 路由模式
     app.register_blueprint(api_bp, url_prefix='/api/v1')  # 版本号
     return app
-
-

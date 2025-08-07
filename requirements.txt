@@ -7,3 +7,6 @@ flask-marshmallow==0.14.0
 marshmallow-sqlalchemy==0.28.1
 python-dotenv==1.0.0
 flask_migrate==4.1.0
+i18n==0.2
+jwt==1.4.0
+flask_cors==6.0.1

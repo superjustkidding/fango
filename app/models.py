@@ -1,6 +1,5 @@
 from datetime import datetime
-
-from . import db
+from extensions import db
 
 # 后期需要将models 根据业务分层
 
@@ -10,7 +9,6 @@ class Restaurant(db.Model):
     name = db.Column(db.String(100), nullable=False)
     address = db.Column(db.String(200))
     phone = db.Column(db.String(20))
-    # 关系定义
     products = db.relationship('Product', back_populates='restaurant')
     internal_users = db.relationship('InternalUser', backref='restaurant', lazy=True)
 
@@ -51,9 +49,7 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
     category_id = db.Column(db.Integer, db.ForeignKey('p_categories.id'))
-
-    #关联餐厅
-    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))  # 关联餐厅
     restaurant = db.relationship('Restaurant', back_populates='products')
 
 class P_Category(db.Model):
@@ -63,15 +59,9 @@ class P_Category(db.Model):
     icon = db.Column(db.String(255))  # 分类图标URL
     sort_order = db.Column(db.Integer, default=0)  # 同级排序
     is_active = db.Column(db.Boolean, default=True)  # 是否启用
-
-    # 关联餐厅
-    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))  # 关联餐厅
     restaurant = db.relationship('Restaurant', backref='p_categories')
-
     items = db.relationship('Product', backref='product')
-
-
-
 
 
 class Order(db.Model):
@@ -82,8 +72,6 @@ class Order(db.Model):
     status = db.Column(db.String(20), default='pending')
     total = db.Column(db.Float)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-
-    # 关系
     items = db.relationship('OrderItem', backref='order')
 
 
@@ -94,6 +82,3 @@ class OrderItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
-
-
-
