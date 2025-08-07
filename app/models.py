@@ -11,15 +11,17 @@ class Restaurant(db.Model):
     address = db.Column(db.String(200))
     phone = db.Column(db.String(20))
     # 关系定义
-    products = db.relationship('Product', backref='restaurant', lazy=True)
+    products = db.relationship('Product', back_populates='restaurant')
     internal_users = db.relationship('InternalUser', backref='restaurant', lazy=True)
 
 
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80))
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
     type = db.Column(db.String(20))  # 'internal' or 'external'
 
 
@@ -52,7 +54,7 @@ class Product(db.Model):
 
     #关联餐厅
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
-    restaurant = db.relationship('Restaurant', backref='products', lazy=True)
+    restaurant = db.relationship('Restaurant', back_populates='products')
 
 class P_Category(db.Model):
     __tablename__ = 'p_categories'
