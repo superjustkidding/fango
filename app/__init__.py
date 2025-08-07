@@ -28,3 +28,5 @@ def create_app():
     from .routes.api import api_bp  # 路由模式
     app.register_blueprint(api_bp, url_prefix='/api/v1')  # 版本号
     return app
+
+

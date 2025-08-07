@@ -8,13 +8,20 @@ from app.utils.validation import validate_request
 products_bp = Blueprint('products', __name__)
 schema = ProductSchema()
 
+<<<<<<< HEAD
 @products_bp.route('/<int:product_id>',methods=['GET'])
 def get_products(product_id):
     products = Product.query.get_or_404(product_id)
     return jsonify(schema.dump(products)),200
+=======
+@products_bp.route('/<int:id>', methods=['GET'])
+def get_products(id):
+    products = Product.query.get_or_404(id)
+    return jsonify(schema.dump(products)), 200
+>>>>>>> 0f1a54984bc46c99900121704111dbffc8a12f5b
 
 
-@products_bp.route('/',methods=['GET'])
+@products_bp.route('/', methods=['GET'])
 def list_products():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
@@ -23,7 +30,7 @@ def list_products():
         'items': schema.dump(products.items, many=True),
         'total': products.total,
         'pages': products.pages
-    })
+    }), 200
 
 
 @products_bp.route('/',methods=['POST'])
@@ -38,7 +45,7 @@ def create_products():
         product = Product(**data)
         db.session.add(product)
         db.session.commit()
-        return schema.jsonify(schema.dump(product)), 201
+        return schema.jsonify(schema.dump(product)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
