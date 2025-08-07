@@ -1,7 +1,7 @@
 test:
   DEBUG: True
   SECRET_KEY: 'your_secret_key'
-  SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://root:123456@mysql:3306/fango?charset=utf8mb4'
+  SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://admin:123456@192.168.1.76:3306/fango?charset=utf8mb4'
   SQLALCHEMY_TRACK_MODIFICATIONS: False
 
 

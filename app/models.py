@@ -69,9 +69,6 @@ class P_Category(db.Model):
     items = db.relationship('Product', backref='product')
 
 
-
-
-
 class Order(db.Model):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)

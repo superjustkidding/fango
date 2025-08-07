@@ -8,9 +8,9 @@ from app.utils.validation import validate_request
 products_bp = Blueprint('products', __name__)
 schema = ProductSchema()
 
-@products_bp.route('/<int:id>',methods=['GET'])
-def get_products(id):
-    products = Product.query.get_or_404(id)
+@products_bp.route('/<int:product_id>',methods=['GET'])
+def get_products(product_id):
+    products = Product.query.get_or_404(product_id)
     return jsonify(schema.dump(products)),200
 
 
@@ -43,10 +43,10 @@ def create_products():
         return jsonify({"error": str(e)}), 500
 
 
-@products_bp.route('/<int:id>',methods=['PUT'])
+@products_bp.route('/<int:product_id>',methods=['PUT'])
 @validate_request(schema)
-def update_products(id):
-    product = Product.query.get_or_404(id)
+def update_products(product_id):
+    product = Product.query.get_or_404(product_id)
     data = request.validated_data
     for key, value in data.items():
         setattr(product, key, value)
@@ -54,10 +54,10 @@ def update_products(id):
     return jsonify(schema.dump(product)), 200
 
 
-@products_bp.route('/<int:id>',methods=['DELETE'])
+@products_bp.route('/<int:product_id>',methods=['DELETE'])
 @validate_request(schema)
-def delete_products(id):
-    product = Product.query.get_or_404(id)
+def delete_products(product_id):
+    product = Product.query.get_or_404(product_id)
     db.session.delete(product)
     db.session.commit()
     return jsonify(schema.dump(product)), 200
