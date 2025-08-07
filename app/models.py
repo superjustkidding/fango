@@ -1,10 +1,13 @@
 from datetime import datetime
 from app import db
 
+from extensions.sqlalchemy_plus.sqlalchemy import make_uuid
+
 # 后期需要将models 根据业务分层
 
 class BaseModel(db.Model):
     __abstract__ = True
+    uuid = db.Column(db.String(32), default=make_uuid)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     deleted_at = db.Column(db.DateTime, default=None)
