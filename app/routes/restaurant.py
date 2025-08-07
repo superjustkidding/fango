@@ -58,8 +58,4 @@ def delete_restaurant(id):
     db.session.delete(restaurant)
     db.session.commit()
     return jsonify(schema.dump(restaurant)), 200
-<<<<<<< HEAD
 
-
-=======
->>>>>>> 0f1a54984bc46c99900121704111dbffc8a12f5b
