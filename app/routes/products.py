@@ -37,13 +37,13 @@ def create_products():
         # 验证数据
         errors = schema.validate(data)
         if errors:
-            return jsonify({"errors": errors}), 400
+            return jsonify({"errors": errors}), ECode.INTER
         product = Product(**data)
         db.session.add(product)
         db.session.commit()
-        return schema.jsonify(schema.dump(product)), 200
+        return schema.jsonify(schema.dump(product)), ECode.SUCC
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), ECode.INTER
 
 
 @products_bp.route('/<int:product_id>',methods=['PUT'])
@@ -54,7 +54,7 @@ def update_products(product_id):
     for key, value in data.items():
         setattr(product, key, value)
     db.session.commit()
-    return jsonify(schema.dump(product)), 200
+    return jsonify(schema.dump(product)),  ECode.SUCC
 
 
 @products_bp.route('/<int:product_id>',methods=['DELETE'])

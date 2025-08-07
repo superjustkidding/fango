@@ -27,6 +27,7 @@ class ECode(Enum):
     UPLOAD = EnumMem(601, ("文件上传异常", "File Upload Exception"))
     REFRESH = EnumMem(602, ("需要刷新", "Need Refresh"))
 
+    # 自定义状态码
     NotBillError = EnumMem(24007, ("账单不存在", "bill does not exist"))
     RemovedBillError = EnumMem(24008,
         (

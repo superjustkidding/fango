@@ -20,8 +20,8 @@ def create_initial_admin():
 
 app = create_app()
 with app.app_context():
-    db.create_all()
-    create_initial_admin()
+    db.create_all()  # 创建加载数据表
+    create_initial_admin()  # 创建超级管理员
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

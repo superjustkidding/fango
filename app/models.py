@@ -3,7 +3,15 @@ from app import db
 
 # 后期需要将models 根据业务分层
 
-class Restaurant(db.Model):
+class BaseModel(db.Model):
+    __abstract__ = True
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    deleted_at = db.Column(db.DateTime, default=None)
+    deleted = db.Column(db.Boolean, default=False)
+
+
+class Restaurant(BaseModel):
     __tablename__ = 'restaurants'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -13,7 +21,7 @@ class Restaurant(db.Model):
     internal_users = db.relationship('InternalUser', backref='restaurant', lazy=True)
 
 
-class User(db.Model):
+class User(BaseModel):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80))
@@ -37,7 +45,7 @@ class ExternalUser(User):
     phone = db.Column(db.String(20))
 
 
-class Product(db.Model):
+class Product(BaseModel):
     __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -46,13 +54,11 @@ class Product(db.Model):
     image_url = db.Column(db.String(255))
     stock = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
     category_id = db.Column(db.Integer, db.ForeignKey('p_categories.id'))
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))  # 关联餐厅
     restaurant = db.relationship('Restaurant', back_populates='products')
 
-class P_Category(db.Model):
+class P_Category(BaseModel):
     __tablename__ = 'p_categories'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -64,18 +70,17 @@ class P_Category(db.Model):
     items = db.relationship('Product', backref='product')
 
 
-class Order(db.Model):
+class Order(BaseModel):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
     status = db.Column(db.String(20), default='pending')
     total = db.Column(db.Float)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
     items = db.relationship('OrderItem', backref='order')
 
 
-class OrderItem(db.Model):
+class OrderItem(BaseModel):
     __tablename__ = 'order_items'
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
