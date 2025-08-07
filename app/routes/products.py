@@ -11,7 +11,7 @@ schema = ProductSchema()
 @products_bp.route('/<int:id>', methods=['GET'])
 def get_products(id):
     products = Product.query.get_or_404(id)
-    return jsonify(schema.dump(products)),200
+    return jsonify(schema.dump(products)), 200
 
 
 @products_bp.route('/', methods=['GET'])
@@ -23,7 +23,7 @@ def list_products():
         'items': schema.dump(products.items, many=True),
         'total': products.total,
         'pages': products.pages
-    })
+    }), 200
 
 
 @products_bp.route('/',methods=['POST'])
@@ -38,7 +38,7 @@ def create_products():
         product = Product(**data)
         db.session.add(product)
         db.session.commit()
-        return schema.jsonify(schema.dump(product)), 201
+        return schema.jsonify(schema.dump(product)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
