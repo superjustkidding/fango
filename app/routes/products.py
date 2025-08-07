@@ -10,11 +10,6 @@ products_bp = Blueprint('products', __name__)
 schema = ProductSchema()
 
 
-@products_bp.route('/<int:product_id>',methods=['GET'])
-def get_products(product_id):
-    products = Product.query.get_or_404(product_id)
-    return jsonify(schema.dump(products)),200
-
 @products_bp.route('/<int:id>', methods=['GET'])
 def get_products(id):
     products = Product.query.get_or_404(id)
