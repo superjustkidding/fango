@@ -4,6 +4,7 @@
 # @Email   : superjustkidding@gmail.com
 # @File    : __init__.py
 # @Software: PyCharm
+from datetime import timedelta
 
 from flask import Flask
 from flask_migrate import Migrate
@@ -20,6 +21,8 @@ def create_app():
 
     db.init_app(app)   # 数据库配置
     migrate = Migrate(app, db)
+
+
 
     # 注册蓝图
     from .routes.api import api_bp  # 路由模式

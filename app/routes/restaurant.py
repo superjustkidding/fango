@@ -23,10 +23,22 @@ def create_restaurant():
     db.session.commit()
     return jsonify(schema.dump(restaurant)), 201
 
+@restaurant_bp.route('/', methods=['GET'])
+def get_restaurant():
+    restaurant = Restaurant.query.all()
+    return jsonify(schema.dump(restaurant)), 200
+
 @restaurant_bp.route('/<int:id>', methods=['GET'])
-def get_restaurant(id):
+def get_restaurants(id):
     restaurant = Restaurant.query.get_or_404(id)
     return jsonify(schema.dump(restaurant))
+
+@restaurant_bp.route('/<int:id>/internal-users', methods=['GET'])
+def get_restaurant_internaluser(id):
+    restaurant = Restaurant.query.get_or_404(id)
+    internal_users = restaurant.internal_users
+    return jsonify(schema.dump(internal_users))
+
 
 @restaurant_bp.route('/<int:id>', methods=['PUT'])
 @validate_request(schema)
@@ -46,3 +58,8 @@ def delete_restaurant(id):
     db.session.delete(restaurant)
     db.session.commit()
     return jsonify(schema.dump(restaurant)), 200
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> 0f1a54984bc46c99900121704111dbffc8a12f5b
