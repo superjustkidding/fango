@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from app import db
-from app.models import User, InternalUser, ExternalUser
+from app.models import User
 from app.schemas import UserSchema, InternalUserSchema, ExternalUserSchema
 from app.utils.validation import validate_request
 
@@ -23,12 +23,12 @@ def create_user():
     user_type = data.pop('type')
     if user_type == 'internal':
         internal_data = InternalUserSchema().load(data)
-        user = InternalUser(**internal_data)
+        user = User(**internal_data)
         schema = InternalUserSchema()
 
     else:
         external_data = ExternalUserSchema().load(data)
-        user = ExternalUser(**external_data)
+        user = User(**external_data)
         schema = ExternalUserSchema()
     db.session.add(user)
     db.session.commit()

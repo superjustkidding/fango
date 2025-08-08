@@ -1,7 +1,7 @@
 from flask import Blueprint,jsonify,request
 
 from app import db
-from app.models import Product, P_Category
+from app.models import MenuItem
 from app.schemas import ProductSchema
 from app.utils.validation import validate_request
 from lib.ecode import ECode
@@ -12,7 +12,7 @@ schema = ProductSchema()
 
 @products_bp.route('/<int:id>', methods=['GET'])
 def get_products(id):
-    products = Product.query.get_or_404(id)
+    products = MenuItem.query.get_or_404(id)
     return jsonify(schema.dump(products)), ECode.SUCC
 
 
@@ -21,7 +21,7 @@ def get_products(id):
 def list_products():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
-    products = Product.query.paginate(page=page, per_page=per_page)
+    products = MenuItem.query.paginate(page=page, per_page=per_page)
     return jsonify({
         'items': schema.dump(products.items, many=True),
         'total': products.total,
@@ -38,7 +38,7 @@ def create_products():
         errors = schema.validate(data)
         if errors:
             return jsonify({"errors": errors}), ECode.INTER
-        product = Product(**data)
+        product = MenuItem(**data)
         db.session.add(product)
         db.session.commit()
         return schema.jsonify(schema.dump(product)), ECode.SUCC
@@ -49,7 +49,7 @@ def create_products():
 @products_bp.route('/<int:product_id>',methods=['PUT'])
 @validate_request(schema)
 def update_products(product_id):
-    product = Product.query.get_or_404(product_id)
+    product = MenuItem.query.get_or_404(product_id)
     data = request.validated_data
     for key, value in data.items():
         setattr(product, key, value)
@@ -60,7 +60,7 @@ def update_products(product_id):
 @products_bp.route('/<int:product_id>',methods=['DELETE'])
 @validate_request(schema)
 def delete_products(product_id):
-    product = Product.query.get_or_404(product_id)
+    product = MenuItem.query.get_or_404(product_id)
     db.session.delete(product)
     db.session.commit()
     return jsonify(schema.dump(product)), ECode.SUCC
