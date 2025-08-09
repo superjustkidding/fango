@@ -2,13 +2,13 @@ from flask import Blueprint, request, jsonify
 from marshmallow import ValidationError
 
 from app import db
-from app.models import Restaurant, P_Category, Product
-from app.schemas import P_CategorySchema, ProductSchema
+from app.models.restaurants.restaurants import Restaurant, MenuItem, MenuCategory
+from app.schemas import MenuItemSchema, OrderSchema
 from app.utils.validation import validate_request
 from lib.ecode import ECode
 
 category_bp = Blueprint('categories', __name__)
-schema = P_CategorySchema()
+schema = MenuItemSchema()
 
 
 # 获取所有商品分类
@@ -18,7 +18,7 @@ def get_all_categories():
     restaurant_id = request.args.get('restaurant_id')
     include_inactive = request.args.get('is_active', 'false').lower() == 'true'
 
-    query = P_Category.query
+    query = MenuItem.query
 
     if not include_inactive:
         query = query.filter_by(is_active=True)
@@ -26,7 +26,7 @@ def get_all_categories():
     if restaurant_id:
         query = query.filter_by(restaurant_id=restaurant_id)
 
-    categories = query.order_by(P_Category.sort_order).all()
+    categories = query.order_by(MenuItem.sort_order).all()
     return jsonify(schema.dump(categories))
 
 
@@ -53,7 +53,7 @@ def create_category():
 # 获取单个分类详情
 @category_bp.route('/<int:category_id>', methods=['GET'])
 def get_category(category_id):
-    category = P_Category.query.get_or_404(category_id)
+    category = MenuItem.query.get_or_404(category_id)
     return jsonify(schema.dump(category))
 
 
@@ -61,7 +61,7 @@ def get_category(category_id):
 @category_bp.route('/<int:category_id>', methods=['PUT'])
 @validate_request(schema)
 def update_category(category_id):
-    category = P_Category.query.get_or_404(category_id)
+    category = MenuItem.query.get_or_404(category_id)
     data = request.valiated_data
     for key, value in data.items():
         setattr(category, key, value)
@@ -72,7 +72,7 @@ def update_category(category_id):
 # 删除商品分类（软删除）
 @category_bp.route('/<int:category_id>', methods=['DELETE'])
 def delete_category(category_id):
-    category = P_Category.query.get_or_404(category_id)
+    category = MenuItem.query.get_or_404(category_id)
     try:
         category.is_active = False
         db.session.commit()
@@ -86,6 +86,6 @@ def delete_category(category_id):
 @category_bp.route('/<int:category_id>/products', methods=['GET'])
 def get_category_products(category_id):
 
-    category = P_Category.query.get_or_404(category_id)
-    products = Product.query.filter_by(category_id=category_id).all()
-    return jsonify(ProductSchema.dump(products))
+    category = MenuItem.query.get_or_404(category_id)
+    products = MenuCategory.query.filter_by(category_id=category_id).all()
+    return jsonify(OrderSchema.dump(products))

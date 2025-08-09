@@ -1,14 +1,14 @@
-# from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request
 # from marshmallow import ValidationError
 # from app import db
 # from app.models import User
-# from app.schemas import UserSchema
+from app.schemas import UserSchema
 # from app.utils.validation import validate_request
 # from extensions.flask_auth import current_user
 # from lib.ecode import ECode
 #
-# user_bp = Blueprint('user', __name__)
-# schema = UserSchema()
+user_bp = Blueprint('user', __name__)
+schema = UserSchema()
 #
 #
 #

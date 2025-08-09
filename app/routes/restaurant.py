@@ -9,7 +9,7 @@ from flask import Blueprint, request, jsonify
 from marshmallow import ValidationError
 
 from app import db
-from app.models import Restaurant
+from app.models.restaurants.restaurants import Restaurant
 from app.schemas import RestaurantSchema
 from app.utils.validation import validate_request
 from extensions.flask_auth import current_user

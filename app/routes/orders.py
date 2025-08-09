@@ -3,7 +3,8 @@ from marshmallow import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
-from app.models import Order, OrderItem, Restaurant, MenuItem
+from app.models.orders.orders import Order, OrderItem
+from app.models.restaurants.restaurants import Restaurant
 from app.schemas import OrderSchema, OrderItemSchema
 from app.utils.validation import validate_request
 from extensions.flask_auth import current_user
@@ -28,7 +29,7 @@ def create_orders():
         # 处理订单项
         total_amount = 0
         for item_data in data['items']:
-            menu_item = MenuItem.query.filter_by(
+            menu_item = OrderItem.query.filter_by(
                 id=item_data['menu_item_id'],
                 is_available=True,
                 restaurant_id=restaurant.id
