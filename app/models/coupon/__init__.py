@@ -5,4 +5,4 @@
 # @File    : __init__.py.py
 # @Software: PyCharm
 
-from .coupon import *
+from .coupon import Coupon

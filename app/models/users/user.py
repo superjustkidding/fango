@@ -20,7 +20,7 @@ class User(BaseModel, UserMixin):
     # 基本信息
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
     address = db.Column(db.String(200))
     avatar = db.Column(db.String(200))  # 头像URL

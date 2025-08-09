@@ -6,7 +6,6 @@
 # @Software: PyCharm
 
 from app import db
-from datetime import datetime
 from app.models import BaseModel
 
 

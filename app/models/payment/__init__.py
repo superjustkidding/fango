@@ -4,4 +4,4 @@
 # @Email   : superjustkidding@gmail.com
 # @File    : __init__.py.py
 # @Software: PyCharm
-from .payment import *
+from .payment import Payment
