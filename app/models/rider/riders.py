@@ -75,3 +75,24 @@ class RiderLocation(BaseModel):
     def __repr__(self):
         return f'<RiderLocation ({self.latitude}, {self.longitude})>'
 
+class RiderAssignment(BaseModel):
+    """骑手订单分配"""
+    __tablename__ = 'rider_assignments'
+
+    # 分配状态
+    STATUS_PENDING = 'pending'  # 待接受
+    STATUS_ACCEPTED = 'accepted'  # 已接受
+    STATUS_REJECTED = 'rejected'  # 已拒绝
+    STATUS_CANCELED = 'canceled'  # 已取消
+
+    # 分配信息
+    status = db.Column(db.String(20), default=STATUS_PENDING, nullable=False)
+    assigned_at = db.Column(db.DateTime, default=datetime.utcnow)  # 分配时间
+    responded_at = db.Column(db.DateTime)  # 响应时间
+
+    # 外键
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    rider_id = db.Column(db.Integer, db.ForeignKey('riders.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<RiderAssignment {self.order_id} to {self.rider_id}>'

@@ -44,7 +44,7 @@ class Restaurant(BaseModel, UserMixin):
     delivery_zones = db.relationship('DeliveryZone', backref='restaurant', lazy=True)
     operating_hours = db.relationship('OperatingHours', backref='restaurant', lazy=True)
     promotions = db.relationship('Promotion', backref='restaurant', lazy=True)
-    coupons = db.relationship('Coupon', backref='restaurant', lazy=True)
+    coupons = db.relationship('coupon', backref='restaurant', lazy=True)
 
     # 密码处理
     def set_password(self, password):
@@ -212,3 +212,22 @@ class Promotion(BaseModel):
 
     def __repr__(self):
         return f'<Promotion {self.title}>'
+
+class RestaurantStatistics(BaseModel):
+    """餐馆统计数据"""
+    __tablename__ = 'restaurant_statistics'
+
+    # 统计信息
+    date = db.Column(db.Date, nullable=False)
+    total_orders = db.Column(db.Integer, default=0)
+    completed_orders = db.Column(db.Integer, default=0)
+    canceled_orders = db.Column(db.Integer, default=0)
+    total_revenue = db.Column(db.Float, default=0.0)
+    average_rating = db.Column(db.Float, default=0.0)
+    popular_items = db.Column(db.Text)  # JSON格式热门菜品
+
+    # 外键
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<RestaurantStats {self.date}>'

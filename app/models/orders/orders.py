@@ -9,7 +9,6 @@
 # 业务相关模型
 # ==============================
 from app import db
-from datetime import datetime
 from app.models import BaseModel
 from extensions.sqlalchemy_plus.sqlalchemy import make_uuid
 
@@ -110,82 +109,6 @@ class OrderStatusHistory(BaseModel):
         return f'<OrderStatusHistory {self.status} at {self.created_at}>'
 
 
-class Payment(BaseModel):
-    """支付记录"""
-    __tablename__ = 'payments'
-
-    # 支付状态
-    STATUS_PENDING = 'pending'
-    STATUS_COMPLETED = 'completed'
-    STATUS_FAILED = 'failed'
-    STATUS_REFUNDED = 'refunded'
-
-    # 支付信息
-    amount = db.Column(db.Float, nullable=False)
-    payment_method = db.Column(db.String(20), nullable=False)  # wechat, alipay, card, cash
-    transaction_id = db.Column(db.String(100))  # 第三方支付ID
-    status = db.Column(db.String(20), default=STATUS_PENDING, nullable=False)
-    paid_at = db.Column(db.DateTime)  # 支付时间
-
-    # 外键
-    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
-
-    def __repr__(self):
-        return f'<Payment {self.amount} via {self.payment_method}>'
-
-
-class Coupon(BaseModel):
-    """优惠券"""
-    __tablename__ = 'coupons'
-
-    # 优惠券类型
-    TYPE_PERCENTAGE = 'percentage'  # 百分比折扣
-    TYPE_FIXED = 'fixed'  # 固定金额折扣
-
-    # 优惠券信息
-    code = db.Column(db.String(50), unique=True, nullable=False)
-    coupon_type = db.Column(db.String(20), nullable=False)
-    value = db.Column(db.Float, nullable=False)  # 折扣值
-    min_order_amount = db.Column(db.Float, default=0.0)  # 最低订单金额
-    max_discount_amount = db.Column(db.Float)  # 最大折扣金额（百分比折扣时）
-    valid_from = db.Column(db.DateTime, nullable=False)
-    valid_to = db.Column(db.DateTime, nullable=False)
-    usage_limit = db.Column(db.Integer)  # 使用次数限制
-    usage_count = db.Column(db.Integer, default=0)  # 已使用次数
-
-    # 外键
-    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
-
-    # 关系
-    orders = db.relationship('Order', backref='coupon', lazy=True)
-
-    def __repr__(self):
-        return f'<Coupon {self.code}>'
-
-
-class RiderAssignment(BaseModel):
-    """骑手订单分配"""
-    __tablename__ = 'rider_assignments'
-
-    # 分配状态
-    STATUS_PENDING = 'pending'  # 待接受
-    STATUS_ACCEPTED = 'accepted'  # 已接受
-    STATUS_REJECTED = 'rejected'  # 已拒绝
-    STATUS_CANCELED = 'canceled'  # 已取消
-
-    # 分配信息
-    status = db.Column(db.String(20), default=STATUS_PENDING, nullable=False)
-    assigned_at = db.Column(db.DateTime, default=datetime.utcnow)  # 分配时间
-    responded_at = db.Column(db.DateTime)  # 响应时间
-
-    # 外键
-    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
-    rider_id = db.Column(db.Integer, db.ForeignKey('riders.id'), nullable=False)
-
-    def __repr__(self):
-        return f'<RiderAssignment {self.order_id} to {self.rider_id}>'
-
-
 class Review(BaseModel):
     """订单评价"""
     __tablename__ = 'reviews'
@@ -224,22 +147,3 @@ class ItemReview(BaseModel):
     def __repr__(self):
         return f'<ItemReview for {self.menu_item_id}>'
 
-
-class RestaurantStatistics(BaseModel):
-    """餐馆统计数据"""
-    __tablename__ = 'restaurant_statistics'
-
-    # 统计信息
-    date = db.Column(db.Date, nullable=False)
-    total_orders = db.Column(db.Integer, default=0)
-    completed_orders = db.Column(db.Integer, default=0)
-    canceled_orders = db.Column(db.Integer, default=0)
-    total_revenue = db.Column(db.Float, default=0.0)
-    average_rating = db.Column(db.Float, default=0.0)
-    popular_items = db.Column(db.Text)  # JSON格式热门菜品
-
-    # 外键
-    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'), nullable=False)
-
-    def __repr__(self):
-        return f'<RestaurantStats {self.date}>'
