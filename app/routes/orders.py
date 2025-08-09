@@ -1,125 +1,82 @@
 from flask import Blueprint, request, jsonify
+from marshmallow import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
-from app.models import Order, OrderItem
+from app.models import Order, OrderItem, Restaurant, MenuItem
 from app.schemas import OrderSchema, OrderItemSchema
 from app.utils.validation import validate_request
+from extensions.flask_auth import current_user
+from lib.ecode import ECode
 
 order_bp = Blueprint('orders', __name__)
 schema = OrderSchema()
 
-# 获取订单详情（带关联项）
-@order_bp.route('/<int:order_id>',methods=['GET'])
-def get_order(order_id):
-    order = Order.query.get_or_404(order_id)
-    order_data = OrderSchema().dump(order)
-    order_data['items'] = OrderItemSchema.dump(order.items)
-    return jsonify(order_data)
 
-# 获取用户订单列表（分页+状态过滤）
-@order_bp.route('/user/<int:user_id>', methods=['GET'])
-@validate_request(schema)
-def get_user_orders(user_id):
-    try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-        status = request.args.get('status')
-
-        query = Order.query.filter_by(user_id=user_id)
-
-        if status:
-            query = query.filter_by(status=status)
-
-        orders = query.order_by(Order.created_at.desc()).paginate(
-            page=page,
-            per_page=per_page,
-            error_out=False
-        )
-
-        return jsonify({
-            'items': schema.dump(orders.items),
-            'total': orders.total,
-            'pages': orders.pages,
-            'current_page': orders.page
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
-
-
-
+#
 @order_bp.route('/', methods=['POST'])
 @validate_request(schema)
 def create_orders():
     try:
-
         data = request.validated_data
-        total = sum(item['price'] * item['quantity'] for item in data['items'])
-        order = Order(
-            user_id=data['user_id'],
-            restaurant_id=data['restaurant_id'],
-            total=total,
-            status='pending'
-        )
-        db.session.add(order)
-        db.session.flush()  # 获取order.id
+        restaurant = Restaurant.query.filter_by(
+            id=data['restaurant_id'],
+            is_active=True,
+            deleted=False
+        ).first_or_404()
+        order = Order(**data)
+        # 处理订单项
+        total_amount = 0
         for item_data in data['items']:
-            item = OrderItem(
-                order_id=order.id,
-                product_id=item_data['product_id'],
-                quantity=item_data['quantity'],
-                price=item_data['price']
-            )
-            db.session.add(item)
+            menu_item = MenuItem.query.filter_by(
+                id=item_data['menu_item_id'],
+                is_available=True,
+                restaurant_id=restaurant.id
+            ).first_or_404()
+        # 创建订单项
+        order_item = OrderItem(
+            menu_item_id=menu_item.id,
+            quantity=item_data['quantity'],
+            price_at_order=menu_item.price  # 记录下单时的价格
+        )
+        order.items.append(order_item)
+        total_amount += menu_item.price * item_data['quantity']
+
+        # 更新订单总金额
+        order.total_amount = total_amount
+
+        db.session.add(order)
         db.session.commit()
-        return jsonify(schema.dump(order)), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify(schema.dump(order)), ECode.SUCC
+    except ValidationError as err:
+        return jsonify({"error": "数据验证失败"}), ECode.ERROR
 
 
-# @order_bp.route('/<int:order_id>/status', methods=['PATCH'])
-# def update_order_status(order_id):
-#     try:
-#         order = Order.query.get_or_404(order_id)
-#         new_status = request.json.get('status')
-#
-#         # 状态转换规则
-#         valid_transitions = {
-#             'pending': ['preparing', 'cancelled'],
-#             'preparing': ['delivering', 'cancelled'],
-#             'delivering': ['complete'],
-#             'complete': [],
-#             'cancelled': []
-#         }
-#
-#         # 验证状态转换是否合法
-#         if new_status not in valid_transitions.get(order.status, []):
-#             return jsonify({
-#                 'error': 'Invalid status transition',
-#                 'current': order.status,
-#                 'allowed': valid_transitions[order.status]
-#             }), 400
-#
-#         order.status = new_status
-#         db.session.commit()
-#
-#         return jsonify(OrderSchema().dump(order))
-#
-#     except SQLAlchemyError as e:
-#         db.session.rollback()
-#         return jsonify({'error': str(e)}), 500
+@order_bp.route('/<string:order_uuid>', methods=['GET'])
+def get_orders(order_uuid):
+    order = Order.query.filter_by(uuid=order_uuid).first_or_404()
+    if (current_user._role_name != 'user' and order.user_id != current_user.id) or \
+        (current_user._role_name != 'restaurant' and order.restaurant_id != current_user.id):
+        return  jsonify({'error':'无权查看订单'}), ECode.FORBID
+    return jsonify(schema.dump(order)), ECode.SUCC
 
-@order_bp.route('/<int:order_id>', methods=['DELETE'])
-def delete_order(order_id):
-    order = Order.query.get_or_404(order_id)
 
-    # 先删除关联的订单项
-    OrderItem.query.filter_by(order_id=order_id).delete()
+@order_bp.route('/user/<int:user_id>', methods=['GET'])
+def get_user_orders(user_id):
 
-    # 再删除订单
-    db.session.delete(order)
-    db.session.commit()
+    # 权限验证
+    if current_user.id != user_id and current_user.role != 'admin':
+        return jsonify({"error": "无权查看他人订单"}), ECode.FORBID
 
-    return jsonify({'message': 'Order deleted successfully'}), 200
+    status = request.args.get('status')
+    query = Order.query.filter_by(user_id=user_id, deleted=False)
+
+    if status:
+        query = query.filter_by(status=status)
+
+    orders = query.order_by(Order.created_at.desc()).all()
+    return jsonify(schema.dump(orders))
+
+
+
 

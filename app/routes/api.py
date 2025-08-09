@@ -7,10 +7,13 @@
 
 
 from flask import Blueprint
+
+from .categories import category_bp
+from .menus import menu_bp
 from .restaurant import restaurant_bp
 from .user import user_bp
 from .orders import order_bp
-from .products import products_bp
+
 
 api_bp = Blueprint('api', __name__)
 
@@ -18,4 +21,5 @@ api_bp = Blueprint('api', __name__)
 api_bp.register_blueprint(restaurant_bp, url_prefix='/restaurants')  # 餐厅
 api_bp.register_blueprint(user_bp, url_prefix='/users')   # 用户
 api_bp.register_blueprint(order_bp, url_prefix='/orders')  # 订单
-api_bp.register_blueprint(products_bp, url_prefix='/products')  # 商品
+api_bp.register_blueprint(menu_bp, url_prefix='/menus')  # 商品
+api_bp.register_blueprint(category_bp, url_prefix='/categories')  #商品分类

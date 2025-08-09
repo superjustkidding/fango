@@ -49,6 +49,31 @@ class User(BaseModel):
         """验证密码"""
         return check_password_hash(self.password_hash, password)
 
+
+class Rider(BaseModel):
+    """骑手模型"""
+    __tablename__ = 'riders'
+
+    name = db.Column(db.String(50), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    vehicle_type = db.Column(db.String(50))  # 交通工具类型
+    license_plate = db.Column(db.String(20))  # 车牌号
+    is_available = db.Column(db.Boolean, default=True)
+
+    # 关系
+    orders = db.relationship('Order', backref='rider', lazy=True)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
+
+
 class Restaurant(BaseModel):
     """餐馆模型"""
     __tablename__ = 'restaurants'
@@ -74,26 +99,6 @@ class Restaurant(BaseModel):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-class Rider(BaseModel):
-    """骑手模型"""
-    __tablename__ = 'riders'
-
-    name = db.Column(db.String(50), nullable=False)
-    phone = db.Column(db.String(20), nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    vehicle_type = db.Column(db.String(50))  # 交通工具类型
-    license_plate = db.Column(db.String(20))  # 车牌号
-    is_available = db.Column(db.Boolean, default=True)
-
-    # 关系
-    orders = db.relationship('Order', backref='rider', lazy=True)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
 
 class MenuItem(BaseModel):
     """餐馆菜单项模型"""
@@ -156,3 +161,31 @@ class Review(BaseModel):
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
     menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'))
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+
+
+
+
+    items = db.relationship('Product', backref='product')
+
+
+class Order(db.Model):
+    __tablename__ = 'orders'
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(20), default='pending')
+    total = db.Column(db.Float)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'))
+
+    items = db.relationship('OrderItem', backref='order')
+
+
+class OrderItem(db.Model):
+    __tablename__ = 'order_items'
+    id = db.Column(db.Integer, primary_key=True)
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+
