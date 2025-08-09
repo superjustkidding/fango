@@ -25,6 +25,7 @@ class User(BaseModel, UserMixin):
     address = db.Column(db.String(200))
     avatar = db.Column(db.String(200))  # 头像URL
     last_login = db.Column(db.DateTime)  # 最后登录时间
+    is_admin = db.Column(db.Boolean, default=False)
 
     # 关系
     orders = db.relationship('Order', backref='customer', lazy=True)
