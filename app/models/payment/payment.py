@@ -17,7 +17,7 @@ class Payment(BaseModel):
     STATUS_PENDING = 'pending'
     STATUS_COMPLETED = 'completed'
     STATUS_FAILED = 'failed'
-    STATUS_REFUNDED = 'refunded'
+    STATUS_REFUNDED = 'refunded'  #已退款
 
     # 支付信息
     amount = db.Column(db.Float, nullable=False)

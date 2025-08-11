@@ -10,13 +10,14 @@ from marshmallow import ValidationError
 
 from app import db
 from app.models.restaurants.restaurants import Restaurant
-from app.schemas import RestaurantSchema
+from app.schemas.restaurants.restaurant_schema import RestaurantBase
+
 from app.utils.validation import validate_request
 from extensions.flask_auth import current_user
 from lib.ecode import ECode
 
 restaurant_bp = Blueprint('restaurant', __name__)
-schema = RestaurantSchema()
+schema = RestaurantBase()
 
 
 @restaurant_bp.route('/', methods=['POST'])
