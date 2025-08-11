@@ -40,9 +40,9 @@ class Rider(BaseModel, UserMixin):
     average_rating = db.Column(db.Float, default=0.0)  # 平均评分
 
     # 关系
-    orders = db.relationship('Order', backref='rider', lazy=True)
-    locations = db.relationship('RiderLocation', backref='rider', lazy=True)
-    assignments = db.relationship('RiderAssignment', backref='rider', lazy=True)
+    orders = db.relationship('Order', backref='riders', lazy=True)
+    locations = db.relationship('RiderLocation', backref='riders', lazy=True)
+    assignments = db.relationship('RiderAssignment', backref='riders', lazy=True)
 
     # 密码处理
     def set_password(self, password):

@@ -44,7 +44,7 @@ class Restaurant(BaseModel, UserMixin):
     delivery_zones = db.relationship('DeliveryZone', backref='restaurant', lazy=True)
     operating_hours = db.relationship('OperatingHours', backref='restaurant', lazy=True)
     promotions = db.relationship('Promotion', backref='restaurant', lazy=True)
-    coupons = db.relationship('coupon', backref='restaurant', lazy=True)
+    coupons = db.relationship('Coupon', backref='restaurant', lazy=True)
 
     # 密码处理
     def set_password(self, password):

@@ -1,41 +1,55 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2025/8/5 17:54
-# @Author  : JustKidding
-# @Email   : superjustkidding@gmail.com
-# @File    : __init__.py
-# @Software: PyCharm
-from datetime import timedelta
+import os
 
 from flask import Flask
-
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from .config import load_config
 
-# 创建数据库实例
-db = SQLAlchemy()
+from werkzeug.security import generate_password_hash
 
+db = SQLAlchemy()
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
     config = load_config()
     app.config.update(config)
 
-    # 初始化数据库
     db.init_app(app)
+    migrate.init_app(app, db)  # 这里初始化 Flask-Migrate
 
-    # 确保所有模型被导入
-    with app.app_context():
-        # 导入所有模型
-        from .models import users, orders, coupon
-
-        # 反射数据库元数据
-        db.reflect()
-
-    # 注册蓝图
     from .routes.api import api_bp
     app.register_blueprint(api_bp, url_prefix='/api/v1')
 
-    # 将 db 附加到 app 实例
-    app.db = db
+    with app.app_context():
+        from .models import (
+            basemodel,
+            users,
+            coupon,
+            orders,
+            restaurants,
+            rider,
+            payment
+        )
+
+        from app.models.users.user import User  # 延迟导入，防止循环依赖
+        username = os.getenv("ADMIN_USERNAME", "admin")
+        email = os.getenv("ADMIN_EMAIL", "admin@example.com")
+        password = os.getenv("ADMIN_PASSWORD", "admin123")
+        phone = os.getenv("ADMIN_PHONE", 18000000000)
+
+        if not User.query.filter_by(is_admin=True).first():
+            admin = User(
+                username=username,
+                email=email,
+                password=generate_password_hash(password),
+                phone= phone,
+                is_admin=True
+            )
+            db.session.add(admin)
+            db.session.commit()
+            app.logger.info(f"超级管理员 {username} 已创建")
+        else:
+            app.logger.info("超级管理员已存在")
 
     return app

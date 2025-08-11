@@ -83,7 +83,7 @@ class UserCoupon(BaseModel):
     coupon_id = db.Column(db.Integer, db.ForeignKey('coupons.id'), nullable=False)
 
     # 关系
-    coupon = db.relationship('coupon', backref='user_coupons', lazy=True)
+    coupon = db.relationship('Coupon', backref='user_coupons', lazy=True)
 
     def __repr__(self):
         return f'<UserCoupon {self.coupon_id} for {self.user_id}>'
