@@ -9,8 +9,12 @@ from flask import Blueprint, request, jsonify
 from marshmallow import ValidationError
 
 from app import db
-from app.models.restaurants.restaurants import Restaurant
+
 from app.schemas.restaurants.restaurant_schema import RestaurantBase
+
+
+from app.models.restaurants.restaurant import Restaurant
+
 
 from app.utils.validation import validate_request
 from extensions.flask_auth import current_user

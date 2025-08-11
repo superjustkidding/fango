@@ -9,6 +9,6 @@ from .basemodel import BaseModel
 from .users import *
 from .orders import *
 from .restaurants import *
-from .rider import *
-from .payment import *
-from .coupon import *
+from .riders import *
+from .payments import *
+from .coupons import *

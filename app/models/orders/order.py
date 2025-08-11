@@ -2,7 +2,7 @@
 # @Time    : 2025/8/9 15:28
 # @Author  : JustKidding
 # @Email   : superjustkidding@gmail.com
-# @File    : orders.py
+# @File    : order.py
 # @Software: PyCharm
 
 # ==============================
@@ -103,7 +103,7 @@ class OrderStatusHistory(BaseModel):
     # 外键
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     actor_id = db.Column(db.Integer)  # 操作人ID（用户、商家或骑手）
-    actor_type = db.Column(db.String(20))  # 操作人类型（user, restaurant, rider）
+    actor_type = db.Column(db.String(20))  # 操作人类型（user, restaurant, riders）
 
     def __repr__(self):
         return f'<OrderStatusHistory {self.status} at {self.created_at}>'
