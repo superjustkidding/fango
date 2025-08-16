@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from app.models.orders.order import Order, OrderItem
 from app.models.restaurants.restaurant import Restaurant
-from app.schemas import OrderSchema, OrderItemSchema
+from app.schemas.schemas import OrderSchema, OrderItemSchema
 from app.utils.validation import validate_request
 from extensions.flask_auth import current_user
 from lib.ecode import ECode

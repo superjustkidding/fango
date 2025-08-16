@@ -10,7 +10,7 @@ from marshmallow import ValidationError
 
 from app import db
 from app.models.restaurants.restaurant import Restaurant
-from app.schemas import RestaurantSchema
+from app.schemas.schemas import RestaurantSchema
 from app.utils.validation import validate_request
 from extensions.flask_auth import current_user
 from lib.ecode import ECode

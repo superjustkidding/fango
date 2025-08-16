@@ -7,19 +7,49 @@
 
 
 from flask import Blueprint
+from flask_restful import Api
+from .jwt import jwt
+from .user.resources import UserListResource, UserResource, LoginResource
 
-from .categories import category_bp
-from .menus import menu_bp
-from .restaurant import restaurant_bp
-from .user import user_bp
-from .orders import order_bp
+# 创建API蓝图
+blueprint = Blueprint('api', __name__)
+api = Api(blueprint)
 
 
-api_bp = Blueprint('api', __name__)
+def init_app(app):
+    # 初始化JWT
+    jwt.init_app(app)
 
-# 注册子路由 把实际的业务拆分的过程
-api_bp.register_blueprint(restaurant_bp, url_prefix='/restaurants')  # 餐厅
-api_bp.register_blueprint(user_bp, url_prefix='/users')   # 用户
-api_bp.register_blueprint(order_bp, url_prefix='/orders')  # 订单
-api_bp.register_blueprint(menu_bp, url_prefix='/menus')  # 商品
-api_bp.register_blueprint(category_bp, url_prefix='/categories')  #商品分类
+    # 注册用户路由
+    api.add_resource(UserListResource, '/users')
+    api.add_resource(UserResource, '/users/<int:user_id>')
+    api.add_resource(LoginResource, '/login')
+
+    # 注册蓝图
+    app.register_blueprint(blueprint, url_prefix='/api/v1')
+
+    # 添加JWT认证钩子
+    add_jwt_protection(app)
+
+
+def add_jwt_protection(app):
+    """添加JWT认证保护"""
+    from flask_jwt_extended import jwt_required, verify_jwt_in_request
+    from functools import wraps
+
+    # 需要保护的端点列表
+    protected_endpoints = [
+        'userlistresource',
+        'userresource',
+        # 添加其他需要保护的端点
+    ]
+
+    @blueprint.before_request
+    def protect_endpoints():
+        # 检查当前端点是否需要保护
+        if request.endpoint in protected_endpoints:
+            try:
+                verify_jwt_in_request()
+            except Exception as e:
+                app.logger.error(f"JWT verification failed: {str(e)}")
+                raise

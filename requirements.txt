@@ -12,3 +12,6 @@ jwt==1.4.0
 flask_cors==6.0.1
 Werkzeug==2.3.3
 flask_login==0.6.3
+logzero==1.7.0
+flask_restful==0.3.10
+flask_jwt_extended==4.7.1

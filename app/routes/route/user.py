@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from flask import Blueprint, jsonify, request
-# from marshmallow import ValidationError
-# from app import db
-# from app.models import User
-from app.schemas import UserSchema
-# from app.utils.validation import validate_request
-# from extensions.flask_auth import current_user
-# from lib.ecode import ECode
+from marshmallow import ValidationError
+from app import db
+from app.models import User
+from app.schemas.schemas import UserSchema
+from app.utils.validation import validate_request
+from app.utils.validation import validate_request
+from extensions.flask_auth import current_user
+from lib.ecode import ECode
 #
 user_bp = Blueprint('user', __name__)
 schema = UserSchema()
-#
-#
-#
-#
 #
 # @user_bp.route('/me', methods=['GET'])
 # def get_current_user():
@@ -30,22 +27,22 @@ schema = UserSchema()
 #
 #
 # # 顾客注册
-# @user_bp.route('/customers/register', methods=['POST'])
-# @validate_request(schema)
-# def register_customer():
-#     try:
-#         data = request.validated_data
-#         if User.query.filter_by(username=data['username']).first():
-#             return jsonify({"error": "用户名已存在"}), ECode.ERROR
-#
-#         customer = Customer(**data)
-#         customer.password = data['password']
-#
-#         db.session.add(customer)
-#         db.session.commit()
-#         return jsonify(CustomerSchema.dump(customer)), ECode.SUCC
-#     except ValidationError as err:
-#         return jsonify({"error": err.messages}), ECode.ERROR
+@user_bp.route('/customers/register', methods=['POST'])
+@validate_request(schema)
+def register_customer():
+    try:
+        data = request.validated_data
+        if User.query.filter_by(username=data['username']).first():
+            return jsonify({"error": "用户名已存在"}), ECode.ERROR
+
+        customer = User(**data)
+        customer.password = data['password']
+
+        db.session.add(customer)
+        db.session.commit()
+        return jsonify(UserSchema.dump(customer)), ECode.SUCC
+    except ValidationError as err:
+        return jsonify({"error": err.messages}), ECode.ERROR
 #
 #
 # # 商家注册

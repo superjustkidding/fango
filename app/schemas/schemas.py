@@ -26,7 +26,7 @@ class UserSchema(BaseSchema):
     password = fields.Str(required=True, load_only=True, validate=[
         validate.Length(min=8, max=128),
         validate.Regexp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$',
-                       error="必须包含大小写字母和数字")
+                        error="必须包含大小写字母和数字")
     ])
     phone = fields.Str(validate=[
         validate.Regexp(r'^1[3-9]\d{9}$', error="必须是有效的中国手机号")

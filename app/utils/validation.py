@@ -10,7 +10,6 @@ from flask import request, jsonify
 from marshmallow import ValidationError
 
 
-
 def validate_request(schema):
     def decorator(f):
         @wraps(f)
@@ -23,3 +22,48 @@ def validate_request(schema):
             return f(*args, **kwargs)
         return wrapper
     return decorator
+
+
+
+class BusinessValidationError(Exception):
+    def __init__(self, message, status_code=400):
+        self.message = message
+        self.status_code = status_code
+        super().__init__(message)
+
+
+def validate_request(schema, data):
+    """使用Marshmallow模式验证请求数据"""
+    try:
+        errors = schema.validate(data)
+        if errors:
+            raise BusinessValidationError(str(errors), 400)
+        return schema.load(data)
+    except ValidationError as err:
+        raise BusinessValidationError(str(err.messages), 400)
+
+
+def register_error_handlers(app):
+    """注册全局错误处理器"""
+
+    @app.errorhandler(BusinessValidationError)
+    def handle_business_error(error):
+        return jsonify({
+            "error": "ValidationError",
+            "message": error.message
+        }), error.status_code
+
+    @app.errorhandler(404)
+    def handle_not_found(error):
+        return jsonify({
+            "error": "NotFound",
+            "message": "The requested resource was not found"
+        }), 404
+
+    @app.errorhandler(500)
+    def handle_internal_error(error):
+        app.logger.error(f"Internal server error: {str(error)}")
+        return jsonify({
+            "error": "InternalServerError",
+            "message": "An internal server error occurred"
+        }), 500
