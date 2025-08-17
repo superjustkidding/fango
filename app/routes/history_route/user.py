@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from flask import Blueprint, jsonify, request
-# from marshmallow import ValidationError
-# from app import db
-# from app.models import User
-from app.schemas import UserSchema
-# from app.utils.validation import validate_request
-# from extensions.flask_auth import current_user
-# from lib.ecode import ECode
+from marshmallow import ValidationError
+from app import db
+from app.models import User
+from app.schemas.schemas import UserSchema
+from app.utils.validation import validate_request
+from app.utils.validation import validate_request
+from extensions.flask_auth import current_user
+from lib.ecode import ECode
 #
-user_bp = Blueprint('user', __name__)
+user_bp = Blueprint('users', __name__)
 schema = UserSchema()
 #
-#
-#
-#
-#
-# @user_bp.route('/me', methods=['GET'])
+# @user_bp.history_route('/me', methods=['GET'])
 # def get_current_user():
 #     """获取当前用户信息"""
 #     if current_user.role == 'customer':
@@ -30,26 +27,26 @@ schema = UserSchema()
 #
 #
 # # 顾客注册
-# @user_bp.route('/customers/register', methods=['POST'])
-# @validate_request(schema)
-# def register_customer():
-#     try:
-#         data = request.validated_data
-#         if User.query.filter_by(username=data['username']).first():
-#             return jsonify({"error": "用户名已存在"}), ECode.ERROR
-#
-#         customer = Customer(**data)
-#         customer.password = data['password']
-#
-#         db.session.add(customer)
-#         db.session.commit()
-#         return jsonify(CustomerSchema.dump(customer)), ECode.SUCC
-#     except ValidationError as err:
-#         return jsonify({"error": err.messages}), ECode.ERROR
+@user_bp.route('/customers/register', methods=['POST'])
+@validate_request(schema)
+def register_customer():
+    try:
+        data = request.validated_data
+        if User.query.filter_by(username=data['username']).first():
+            return jsonify({"error": "用户名已存在"}), ECode.ERROR
+
+        customer = User(**data)
+        customer.password = data['password']
+
+        db.session.add(customer)
+        db.session.commit()
+        return jsonify(UserSchema.dump(customer)), ECode.SUCC
+    except ValidationError as err:
+        return jsonify({"error": err.messages}), ECode.ERROR
 #
 #
 # # 商家注册
-# @user_bp.route('/merchants/register', methods=['POST'])
+# @user_bp.history_route('/merchants/register', methods=['POST'])
 # def register_merchant():
 #     try:
 #         data = request.validated_data
@@ -67,7 +64,7 @@ schema = UserSchema()
 #
 #
 # # 骑手注册（通常由管理员添加）
-# @user_bp.route('/couriers', methods=['POST'])
+# @user_bp.history_route('/couriers', methods=['POST'])
 #
 # def create_courier():
 #     if current_user.role != 'admin':
@@ -89,7 +86,7 @@ schema = UserSchema()
 #
 #
 # # 管理员获取用户列表
-# @user_bp.route('/', methods=['GET'])
+# @user_bp.history_route('/', methods=['GET'])
 #
 # def get_users():
 #     if current_user.role != 'admin':
@@ -104,21 +101,21 @@ schema = UserSchema()
 #     users = query.all()
 #
 #     result = []
-#     for user in users:
-#         if user.role == 'customer':
-#             result.append(CustomerSchema.dump(user))
-#         elif user.role == 'merchant':
-#             result.append(MerchantSchema.dump(user))
-#         elif user.role == 'courier':
-#             result.append(CourierSchema.dump(user))
+#     for users in users:
+#         if users.role == 'customer':
+#             result.append(CustomerSchema.dump(users))
+#         elif users.role == 'merchant':
+#             result.append(MerchantSchema.dump(users))
+#         elif users.role == 'courier':
+#             result.append(CourierSchema.dump(users))
 #         else:
-#             result.append(Admin.dump(user))
+#             result.append(Admin.dump(users))
 #
 #     return jsonify(result)
 #
 #
 # # 更新当前用户信息
-# @user_bp.route('/update_information', methods=['PUT'])
+# @user_bp.history_route('/update_information', methods=['PUT'])
 # def update_profile():
 #     try:
 #         # 根据用户角色选择对应的Schema
@@ -138,20 +135,20 @@ schema = UserSchema()
 #         data = schema.load(request.json, partial=True)
 #
 #         # 获取当前用户的具体实例（Merchant/Courier/Admin）
-#         user = model.query.get(current_user.id)
+#         users = model.query.get(current_user.id)
 #
 #         # 更新字段（排除密码字段单独处理）
 #         for field, value in data.items():
 #             if field != 'password':
-#                 setattr(user, field, value)
+#                 setattr(users, field, value)
 #
 #         # 特殊处理密码修改
 #         if 'password' in data:
-#             user.password = data['password']
+#             users.password = data['password']
 #
 #         db.session.commit()
 #
-#         return jsonify(schema.dump(user))
+#         return jsonify(schema.dump(users))
 #
 #     except ValidationError as err:
 #         return jsonify({"error": "数据验证失败", "details": err.messages}), ECode.ERROR
@@ -160,24 +157,24 @@ schema = UserSchema()
 #         return jsonify({"error": str(e)}), ECode.INTER
 #
 #
-# @user_bp.route('/delete_account', methods=['DELETE'])
+# @user_bp.history_route('/delete_account', methods=['DELETE'])
 # def admin_delete():
 #     try:
 #         # 获取用户具体实例
 #         if current_user.role == 'merchant':
-#             user = Merchant.query.get(current_user.id)
+#             users = Merchant.query.get(current_user.id)
 #         elif current_user.role == 'courier':
-#             user = Courier.query.get(current_user.id)
+#             users = Courier.query.get(current_user.id)
 #         elif current_user.role == 'admin':
-#             user = Admin.query.get(current_user.id)
+#             users = Admin.query.get(current_user.id)
 #         else:
 #             return jsonify({"error": "未知用户类型"}), ECode.FORBID
 #
 #         # 执行软删除（推荐）
-#         user.is_active = False
+#         users.is_active = False
 #
 #         # 或者执行硬删除（谨慎使用）
-#         # db.session.delete(user)
+#         # db.session.delete(users)
 #
 #         db.session.commit()
 #         # logout_user()  # 登出当前会话

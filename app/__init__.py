@@ -1,57 +1,55 @@
-# -*- coding: utf-8 -*-
-
-import os
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from .config import load_config
 
-from werkzeug.security import generate_password_hash
-
+# 初始化扩展
 db = SQLAlchemy()
-migrate = Migrate()
+
 
 def create_app():
     app = Flask(__name__)
+
+    # 加载配置
     config = load_config()
     app.config.update(config)
 
+    # 初始化数据库
     db.init_app(app)
-    migrate.init_app(app, db)  # 这里初始化 Flask-Migrate
 
-    from .routes.api import api_bp
-    app.register_blueprint(api_bp, url_prefix='/api/v1')
+    # 初始化路由
+    from .routes import api
+    api.init_app(app)
 
+    # 注册错误处理器
+    from .utils.validation import register_error_handlers
+    register_error_handlers(app)
+
+    # 创建超级管理员（如果不存在）
+    create_admin_user(app)
+
+    return app
+
+
+def create_admin_user(app):
+    """创建初始管理员用户"""
     with app.app_context():
-        from .models import (
-            basemodel,
-            users,
-            coupon,
-            orders,
-            restaurants,
-            rider,
-            payment
-        )
+        from app.models.users.user import User
+        from werkzeug.security import generate_password_hash
 
-        from app.models.users.user import User  # 延迟导入，防止循环依赖
-        username = os.getenv("ADMIN_USERNAME", "admin")
-        email = os.getenv("ADMIN_EMAIL", "admin@example.com")
-        password = os.getenv("ADMIN_PASSWORD", "admin123")
-        phone = os.getenv("ADMIN_PHONE", 18000000000)
+        admin_username = app.config.get('ADMIN_USERNAME', 'admin')
+        admin_email = app.config.get('ADMIN_EMAIL', 'admin@example.com')
+        admin_password = app.config.get('ADMIN_PASSWORD', 'admin123')
+        admin_phone = app.config.get('ADMIN_PHONE', '18000000000')
 
-        if not User.query.filter_by(is_admin=True).first():
+        admin = User.query.filter_by(is_admin=True).first()
+        if not admin:
             admin = User(
-                username=username,
-                email=email,
-                password=generate_password_hash(password),
-                phone= phone,
+                username=admin_username,
+                email=admin_email,
+                phone=admin_phone,
+                password=generate_password_hash(admin_password),
                 is_admin=True
             )
             db.session.add(admin)
             db.session.commit()
-            app.logger.info(f"超级管理员 {username} 已创建")
-        else:
-            app.logger.info("超级管理员已存在")
-
-    return app
+            app.logger.info(f"Admin user {admin_username} created")

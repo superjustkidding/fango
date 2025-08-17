@@ -14,8 +14,12 @@ from app.schemas.restaurants.restaurant_schema import RestaurantBase
 
 
 from app.models.restaurants.restaurant import Restaurant
+<<<<<<< HEAD:app/routes/restaurant.py
 
 
+=======
+from app.schemas.schemas import RestaurantSchema
+>>>>>>> ea49225db80edd0920a4bf02c0ba0988d4c301ef:app/routes/history_route/restaurant.py
 from app.utils.validation import validate_request
 from extensions.flask_auth import current_user
 from lib.ecode import ECode

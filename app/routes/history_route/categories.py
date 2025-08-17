@@ -5,7 +5,7 @@ from marshmallow import ValidationError
 
 from app import db
 from app.models.restaurants.restaurant import Restaurant, MenuItem, MenuCategory
-from app.schemas import MenuItemSchema, OrderSchema
+from app.schemas.schemas import MenuItemSchema, OrderSchema
 from app.utils.validation import validate_request
 from lib.ecode import ECode
 

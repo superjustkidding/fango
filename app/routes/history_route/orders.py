@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from app.models.orders.order import Order, OrderItem
 from app.models.restaurants.restaurant import Restaurant
-from app.schemas import OrderSchema, OrderItemSchema
+from app.schemas.schemas import OrderSchema, OrderItemSchema
 from app.utils.validation import validate_request
 from extensions.flask_auth import current_user
 from lib.ecode import ECode
@@ -58,7 +58,7 @@ def create_orders():
 @order_bp.route('/<string:order_uuid>', methods=['GET'])
 def get_orders(order_uuid):
     order = Order.query.filter_by(uuid=order_uuid).first_or_404()
-    if (current_user._role_name != 'user' and order.user_id != current_user.id) or \
+    if (current_user._role_name != 'users' and order.user_id != current_user.id) or \
         (current_user._role_name != 'restaurant' and order.restaurant_id != current_user.id):
         return  jsonify({'error':'无权查看订单'}), ECode.FORBID
     return jsonify(schema.dump(order)), ECode.SUCC

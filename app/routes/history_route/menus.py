@@ -5,7 +5,7 @@ from marshmallow import ValidationError
 
 from app import db
 from app.models.restaurants.restaurant import MenuItem, Restaurant
-from app.schemas import MenuItemSchema
+from app.schemas.schemas import MenuItemSchema
 from app.utils.validation import validate_request
 from extensions.flask_auth import current_user
 from lib.ecode import ECode
@@ -27,7 +27,7 @@ def create_menus():
         menu = MenuItem(**data)
         db.session.add(menu)
         db.session.commit()
-        return  jsonify(schema.dump(menu)), ECode.SUCC
+        return jsonify(schema.dump(menu)), ECode.SUCC
     except ValidationError as err:
             return jsonify({"error": "数据验证失败", "details": err.messages}), ECode.FORBID
     except Exception as e:

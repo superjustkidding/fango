@@ -2,7 +2,7 @@
 # @Time    : 2025/8/9 13:55
 # @Author  : JustKidding
 # @Email   : superjustkidding@gmail.com
-# @File    : user.py
+# @File    : users.py
 # @Software: PyCharm
 # ==============================
 # 用户相关模型
@@ -30,8 +30,8 @@ class User(BaseModel, UserMixin):
     # 关系
     orders = db.relationship('Order', backref='customer', lazy=True)
     reviews = db.relationship('Review', backref='author', lazy=True)
-    user_addresses = db.relationship('UserAddress', backref='user', lazy=True)
-    user_coupons = db.relationship('UserCoupon', backref='user', lazy=True)
+    user_addresses = db.relationship('UserAddress', backref='users', lazy=True)
+    user_coupons = db.relationship('UserCoupon', backref='users', lazy=True)
 
     # 密码处理
     def set_password(self, password):
