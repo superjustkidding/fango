@@ -13,7 +13,7 @@ from lib.ecode import ECode
 user_bp = Blueprint('user', __name__)
 schema = UserSchema()
 #
-# @user_bp.route('/me', methods=['GET'])
+# @user_bp.history_route('/me', methods=['GET'])
 # def get_current_user():
 #     """获取当前用户信息"""
 #     if current_user.role == 'customer':
@@ -46,7 +46,7 @@ def register_customer():
 #
 #
 # # 商家注册
-# @user_bp.route('/merchants/register', methods=['POST'])
+# @user_bp.history_route('/merchants/register', methods=['POST'])
 # def register_merchant():
 #     try:
 #         data = request.validated_data
@@ -64,7 +64,7 @@ def register_customer():
 #
 #
 # # 骑手注册（通常由管理员添加）
-# @user_bp.route('/couriers', methods=['POST'])
+# @user_bp.history_route('/couriers', methods=['POST'])
 #
 # def create_courier():
 #     if current_user.role != 'admin':
@@ -86,7 +86,7 @@ def register_customer():
 #
 #
 # # 管理员获取用户列表
-# @user_bp.route('/', methods=['GET'])
+# @user_bp.history_route('/', methods=['GET'])
 #
 # def get_users():
 #     if current_user.role != 'admin':
@@ -115,7 +115,7 @@ def register_customer():
 #
 #
 # # 更新当前用户信息
-# @user_bp.route('/update_information', methods=['PUT'])
+# @user_bp.history_route('/update_information', methods=['PUT'])
 # def update_profile():
 #     try:
 #         # 根据用户角色选择对应的Schema
@@ -157,7 +157,7 @@ def register_customer():
 #         return jsonify({"error": str(e)}), ECode.INTER
 #
 #
-# @user_bp.route('/delete_account', methods=['DELETE'])
+# @user_bp.history_route('/delete_account', methods=['DELETE'])
 # def admin_delete():
 #     try:
 #         # 获取用户具体实例

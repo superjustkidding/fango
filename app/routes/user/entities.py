@@ -47,10 +47,10 @@ class UserEntity:
 
         # 创建用户
         user = User(
-            username=data['username'],
-            email=data['email'],
-            phone=data.get('phone'),
-            is_admin=data.get('is_admin', False)
+            username = data['username'],
+            email = data['email'],
+            phone = data.get('phone'),
+            is_admin = data.get('is_admin', False)
         )
         user.generate_password_hash(data['password'])
 
