@@ -10,7 +10,7 @@ from app.utils.validation import validate_request
 from extensions.flask_auth import current_user
 from lib.ecode import ECode
 #
-user_bp = Blueprint('user', __name__)
+user_bp = Blueprint('users', __name__)
 schema = UserSchema()
 #
 # @user_bp.history_route('/me', methods=['GET'])
@@ -101,15 +101,15 @@ def register_customer():
 #     users = query.all()
 #
 #     result = []
-#     for user in users:
-#         if user.role == 'customer':
-#             result.append(CustomerSchema.dump(user))
-#         elif user.role == 'merchant':
-#             result.append(MerchantSchema.dump(user))
-#         elif user.role == 'courier':
-#             result.append(CourierSchema.dump(user))
+#     for users in users:
+#         if users.role == 'customer':
+#             result.append(CustomerSchema.dump(users))
+#         elif users.role == 'merchant':
+#             result.append(MerchantSchema.dump(users))
+#         elif users.role == 'courier':
+#             result.append(CourierSchema.dump(users))
 #         else:
-#             result.append(Admin.dump(user))
+#             result.append(Admin.dump(users))
 #
 #     return jsonify(result)
 #
@@ -135,20 +135,20 @@ def register_customer():
 #         data = schema.load(request.json, partial=True)
 #
 #         # 获取当前用户的具体实例（Merchant/Courier/Admin）
-#         user = model.query.get(current_user.id)
+#         users = model.query.get(current_user.id)
 #
 #         # 更新字段（排除密码字段单独处理）
 #         for field, value in data.items():
 #             if field != 'password':
-#                 setattr(user, field, value)
+#                 setattr(users, field, value)
 #
 #         # 特殊处理密码修改
 #         if 'password' in data:
-#             user.password = data['password']
+#             users.password = data['password']
 #
 #         db.session.commit()
 #
-#         return jsonify(schema.dump(user))
+#         return jsonify(schema.dump(users))
 #
 #     except ValidationError as err:
 #         return jsonify({"error": "数据验证失败", "details": err.messages}), ECode.ERROR
@@ -162,19 +162,19 @@ def register_customer():
 #     try:
 #         # 获取用户具体实例
 #         if current_user.role == 'merchant':
-#             user = Merchant.query.get(current_user.id)
+#             users = Merchant.query.get(current_user.id)
 #         elif current_user.role == 'courier':
-#             user = Courier.query.get(current_user.id)
+#             users = Courier.query.get(current_user.id)
 #         elif current_user.role == 'admin':
-#             user = Admin.query.get(current_user.id)
+#             users = Admin.query.get(current_user.id)
 #         else:
 #             return jsonify({"error": "未知用户类型"}), ECode.FORBID
 #
 #         # 执行软删除（推荐）
-#         user.is_active = False
+#         users.is_active = False
 #
 #         # 或者执行硬删除（谨慎使用）
-#         # db.session.delete(user)
+#         # db.session.delete(users)
 #
 #         db.session.commit()
 #         # logout_user()  # 登出当前会话

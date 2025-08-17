@@ -16,7 +16,7 @@ def init_app(app):
     jwt.init_app(app)
 
     # 注册用户路由并收集受保护端点
-    from .user import register_user_routes
+    from .users import register_user_routes
     user_protected = register_user_routes(main_api)
     all_protected_endpoints.extend(user_protected)
 
