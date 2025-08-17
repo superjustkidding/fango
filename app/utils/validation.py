@@ -6,23 +6,8 @@
 # @Software: PyCharm
 
 from functools import wraps
-from flask import request, jsonify
+from flask import jsonify
 from marshmallow import ValidationError
-
-
-def validate_request(schema):
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            try:
-                data = schema.load(request.json)
-                request.validated_data = data  # 添加验证后的数据到request对象
-            except ValidationError as err:
-                return jsonify(err.messages), 400
-            return f(*args, **kwargs)
-        return wrapper
-    return decorator
-
 
 
 class BusinessValidationError(Exception):
@@ -32,12 +17,33 @@ class BusinessValidationError(Exception):
         super().__init__(message)
 
 
-def validate_request(schema, data):
-    """使用Marshmallow模式验证请求数据"""
+def validate_request(schema, data=None):
+    """
+    使用Marshmallow模式验证请求数据
+
+    参数:
+        schema: 可以是模式类或模式实例
+        data: 要验证的数据（可选）
+
+    返回:
+        验证后的数据
+    """
+    # 如果传入的是模式类，则创建实例
+    if isinstance(schema, type):
+        schema = schema()
+
     try:
+        # 如果没有提供数据，则尝试从请求中获取
+        if data is None:
+            from flask import request
+            data = request.get_json()
+
+        # 验证数据
         errors = schema.validate(data)
         if errors:
             raise BusinessValidationError(str(errors), 400)
+
+        # 加载并返回验证后的数据
         return schema.load(data)
     except ValidationError as err:
         raise BusinessValidationError(str(err.messages), 400)
@@ -67,3 +73,17 @@ def register_error_handlers(app):
             "error": "InternalServerError",
             "message": "An internal server error occurred"
         }), 500
+
+
+# def validate_request(schema):
+#     def decorator(f):
+#         @wraps(f)
+#         def wrapper(*args, **kwargs):
+#             try:
+#                 data = schema.load(request.json)
+#                 request.validated_data = data  # 添加验证后的数据到request对象
+#             except ValidationError as err:
+#                 return jsonify(err.messages), 400
+#             return f(*args, **kwargs)
+#         return wrapper
+#     return decorator

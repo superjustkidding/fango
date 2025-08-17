@@ -13,6 +13,8 @@ from app.utils.validation import validate_request, BusinessValidationError
 
 
 class UserListResource(Resource):
+    endpoint = 'api.UserListResource'
+
     def get(self):
         """获取用户列表（管理员权限）"""
         entity = UserEntity(current_user=getattr(self, 'current_user', None))
@@ -26,6 +28,8 @@ class UserListResource(Resource):
 
 
 class UserResource(Resource):
+    endpoint = 'api.UserResource'
+
     def get(self, user_id):
         """获取单个用户信息"""
         entity = UserItemEntity(
@@ -53,8 +57,11 @@ class UserResource(Resource):
 
 
 class LoginResource(Resource):
+    endpoint = 'api.LoginResource'
+
     def post(self):
         """用户登录"""
         data = validate_request(LoginSchema, request.get_json())
         entity = UserEntity()
         return entity.login(data)
+
