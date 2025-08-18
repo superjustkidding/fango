@@ -29,7 +29,7 @@ class UserListResource(Resource):
     def post(self):
         """创建新用户（管理员权限）"""
         data = validate_request(UserCreateSchema, request.get_json())
-        entity = UserEntity(current_user=getattr(self, 'current_user', None))
+        entity = UserEntity(current_user=current_user)
         return entity.create_user(data)
 
 

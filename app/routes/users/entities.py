@@ -64,8 +64,8 @@ class UserEntity:
         if not user:
             raise BusinessValidationError("Invalid username or password", 401)
 
-        # if not users.check_password(data['password']):
-        #     raise BusinessValidationError("Invalid username or password", 401)
+        if not user.check_password(data['password']):
+            raise BusinessValidationError("Invalid username or password", 401)
 
         # 创建访问令牌
         access_token = create_access_token(identity=user)
