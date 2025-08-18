@@ -8,7 +8,6 @@
 from app.models.users.user import User
 from app import db
 from app.utils.validation import BusinessValidationError
-from flask import jsonify
 from flask_jwt_extended import create_access_token
 
 

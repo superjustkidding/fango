@@ -21,9 +21,9 @@ def init_app(app):
     all_protected_endpoints.extend(user_protected)
 
     # 注册餐厅路由并收集受保护端点
-    # from .restaurants import register_restaurant_routes
-    # restaurant_protected = register_restaurant_routes(main_api)
-    # all_protected_endpoints.extend(restaurant_protected)
+    from .restaurants import register_restaurant_routes
+    restaurant_protected = register_restaurant_routes(main_api)
+    all_protected_endpoints.extend(restaurant_protected)
 
     # 注册主蓝图
     app.register_blueprint(main_bp, url_prefix='/api/v1')

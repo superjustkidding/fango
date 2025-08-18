@@ -56,6 +56,15 @@ class Restaurant(BaseModel, UserMixin):
     def get_id(self):
         return f"restaurant_{self.id}"
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "address": self.address,
+            "phone": self.phone,
+            "is_active": self.is_active,
+        }
+
     def __repr__(self):
         return f'<Restaurant {self.name}>'
 

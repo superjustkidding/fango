@@ -20,12 +20,14 @@ class ECode(Enum):
     FORBID = EnumMem(403, ("访问禁止", "Access Forbidden"))
     NOTFOUND = EnumMem(404, ("资源不存在", "Resource Does Not Exist"))
     PARAM = EnumMem(406, ("参数错误", "Parameter Error"))
+    CONFLICT = EnumMem(409, ("特定状态冲突"), "Status Conflict")
     INTER = EnumMem(500, ("内部错误", "Internal Error"))
     EXTERNAL = EnumMem(503, ("外部错误", "External Error"))
     RUNTIME = EnumMem(504, ("运行时错误", "Runtime Error"))
     NOTFILE = EnumMem(600, ("文件不存在", "File Does Not Exist"))
     UPLOAD = EnumMem(601, ("文件上传异常", "File Upload Exception"))
     REFRESH = EnumMem(602, ("需要刷新", "Need Refresh"))
+
 
     # 自定义状态码
     NotBillError = EnumMem(24007, ("账单不存在", "bill does not exist"))
