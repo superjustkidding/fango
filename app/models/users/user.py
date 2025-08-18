@@ -43,6 +43,15 @@ class User(BaseModel, UserMixin):
     def get_id(self):
         return f"user_{self.id}"
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "phone": self.phone,
+            "is_admin": self.is_admin,
+        }
+
     def __repr__(self):
         return f'<User {self.username}>'
 

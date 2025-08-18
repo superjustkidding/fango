@@ -10,16 +10,22 @@ from flask import request
 from .entities import UserEntity, UserItemEntity
 from app.schemas.user.user import UserCreateSchema, UserUpdateSchema, LoginSchema
 from app.utils.validation import validate_request, BusinessValidationError
+from flask_jwt_extended import jwt_required, current_user
+
 
 
 class UserListResource(Resource):
     endpoint = 'api.UserListResource'
 
+    @jwt_required()
     def get(self):
-        """获取用户列表（管理员权限）"""
-        entity = UserEntity(current_user=getattr(self, 'current_user', None))
+        if not current_user.is_admin:
+            raise BusinessValidationError("Permission denied", 403)
+
+        entity = UserEntity(current_user=current_user)
         return entity.get_users(**request.args)
 
+    @jwt_required()
     def post(self):
         """创建新用户（管理员权限）"""
         data = validate_request(UserCreateSchema, request.get_json())

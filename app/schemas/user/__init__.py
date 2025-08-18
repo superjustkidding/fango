@@ -1,3 +1,3 @@
 # -*- coding:utf-8 -*-
 
-from .user import UserCreateSchema, UserUpdateSchema, LoginSchema
+from .user import UserSchema, UserCreateSchema, UserUpdateSchema, LoginSchema

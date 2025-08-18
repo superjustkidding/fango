@@ -8,7 +8,7 @@
 from app.models.users.user import User
 from app import db
 from app.utils.validation import BusinessValidationError
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import jsonify
 from flask_jwt_extended import create_access_token
 
 
@@ -72,7 +72,7 @@ class UserEntity:
 
         return {
             'access_token': access_token,
-            "users": {
+            "user": {
                 "id": user.id,
                 "username": user.username,
                 "email": user.email
