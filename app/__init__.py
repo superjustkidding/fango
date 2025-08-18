@@ -1,9 +1,12 @@
-from flask import Flask
+from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
+from flask.cli import with_appcontext
 from .config import load_config
+from flask_migrate import Migrate
 
 # 初始化扩展
 db = SQLAlchemy()
+migrate = Migrate()
 
 
 def create_app():
@@ -15,6 +18,7 @@ def create_app():
 
     # 初始化数据库
     db.init_app(app)
+    migrate.init_app(app, db)
 
     # 初始化路由
     from .routes import api
@@ -25,31 +29,36 @@ def create_app():
     register_error_handlers(app)
 
     # 创建超级管理员（如果不存在）
-    create_admin_user(app)
-
-    return app
-
-
-def create_admin_user(app):
-    """创建初始管理员用户"""
-    with app.app_context():
+    # 注册 CLI 命令
+    @app.cli.command("create-admin")
+    @with_appcontext
+    def create_admin():
+        """创建管理员用户"""
         from app.models.users.user import User
         from werkzeug.security import generate_password_hash
 
-        admin_username = app.config.get('ADMIN_USERNAME', 'admin')
-        admin_email = app.config.get('ADMIN_EMAIL', 'admin@example.com')
-        admin_password = app.config.get('ADMIN_PASSWORD', 'admin123')
-        admin_phone = app.config.get('ADMIN_PHONE', '18000000000')
+        # 使用 current_app 获取配置
+        admin_username = current_app.config.get('ADMIN_USERNAME', 'admin')
+        admin_email = current_app.config.get('ADMIN_EMAIL', 'admin@example.com')
+        admin_password = current_app.config.get('ADMIN_PASSWORD', 'admin123')
+        admin_phone = current_app.config.get('ADMIN_PHONE', '18000000000')
 
-        admin = User.query.filter_by(is_admin=True).first()
-        if not admin:
-            admin = User(
-                username=admin_username,
-                email=admin_email,
-                phone=admin_phone,
-                password=generate_password_hash(admin_password),
-                is_admin=True
-            )
-            db.session.add(admin)
-            db.session.commit()
-            app.logger.info(f"Admin user {admin_username} created")
+        # 检查是否已存在管理员
+        if User.query.filter_by(is_admin=True).first():
+            print("管理员用户已存在")
+            return
+
+        # 创建新管理员
+        admin = User(
+            username=admin_username,
+            email=admin_email,
+            phone=admin_phone,
+            password=generate_password_hash(admin_password),
+            is_admin=True
+        )
+        db.session.add(admin)
+        db.session.commit()
+        print(f"管理员 {admin_username} 创建成功")
+
+    return app
+
