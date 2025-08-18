@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask.cli import with_appcontext
 from .config import load_config
 from flask_migrate import Migrate
+from datetime import timedelta
 
 # 初始化扩展
 db = SQLAlchemy()
@@ -19,6 +20,13 @@ def create_app():
     # 初始化数据库
     db.init_app(app)
     migrate.init_app(app, db)
+
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=15)  # 访问令牌1小时过期
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)  # 刷新令牌30天过期
+
+    # 初始化JWT
+    from .routes.jwt import jwt
+    jwt.init_app(app)
 
     # 初始化路由
     from .routes import api
