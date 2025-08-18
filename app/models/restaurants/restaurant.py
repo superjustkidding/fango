@@ -112,6 +112,14 @@ class MenuItem(BaseModel):
     order_items = db.relationship('OrderItem', backref='menu_item', lazy=True)
     reviews = db.relationship('ItemReview', backref='menu_item', lazy=True)
 
+    def to_dict(self):
+        return{
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "price": self.price,
+        }
+
     def __repr__(self):
         return f'<MenuItem {self.name}>'
 
