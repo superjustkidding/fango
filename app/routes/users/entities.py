@@ -137,7 +137,8 @@ class UserItemEntity:
         if self.current_user.id == self.user_id:
             raise BusinessValidationError("Cannot delete your own account", 400)
 
-        db.session.delete(self.user)
+        self.user.deleted = True
+        # db.session.delete(self.user)
         db.session.commit()
         return {"message": "User deleted successfully"}
 
