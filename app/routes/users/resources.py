@@ -13,7 +13,6 @@ from app.utils.validation import validate_request, BusinessValidationError
 from flask_jwt_extended import jwt_required, current_user
 
 
-
 class UserListResource(Resource):
     endpoint = 'api.UserListResource'
 
