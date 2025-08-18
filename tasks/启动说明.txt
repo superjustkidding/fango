@@ -1,0 +1,11 @@
+
+# 安装rabbitmq和redis
+
+# 启动 Flask 应用
+python run.py
+
+# 启动 Celery 工作进程（新终端）
+python -m tasks.start_worker
+
+# 启动 Celery 定时任务调度器（新终端）
+python -m tasks.start_beat

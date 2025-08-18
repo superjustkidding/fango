@@ -1,7 +1,7 @@
 from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask.cli import with_appcontext
-from .config import load_config
+from config import load_config
 from flask_migrate import Migrate
 from datetime import timedelta
 

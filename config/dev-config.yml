@@ -1,4 +1,9 @@
 development:
   DEBUG: False
   SECRET_KEY: 'your_prod_secret'
-  SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://admin:123456@192.168.3.66:3306/fango'
+  SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://admin:123456@192.168.1.76:3306/fango'
+  SQLALCHEMY_TRACK_MODIFICATIONS: False
+  CELERY_BROKER_URL: 'amqp://guest:guest@192.168.3.66:5672//'
+  CELERY_RESULT_BACKEND: 'redis://192.168.3.66:6379/0'
+  CELERY_TIMEZONE: 'Asia/Shanghai'
+  CELERY_ENABLE_UTC: True
