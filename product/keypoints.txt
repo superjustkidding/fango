@@ -43,4 +43,4 @@ flask db upgrade
 # 查看历史版本
 flask db history
 
-flask create_admin
+flask create-admin
