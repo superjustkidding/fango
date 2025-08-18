@@ -36,27 +36,30 @@ class UserListResource(Resource):
 class UserResource(Resource):
     endpoint = 'api.UserResource'
 
+    @jwt_required()
     def get(self, user_id):
         """获取单个用户信息"""
         entity = UserItemEntity(
-            current_user=getattr(self, 'current_user', None),
+            current_user=current_user,
             user_id=user_id
         )
         return entity.get_user()
 
+    @jwt_required()
     def put(self, user_id):
         """更新用户信息"""
         data = validate_request(UserUpdateSchema, request.get_json())
         entity = UserItemEntity(
-            current_user=getattr(self, 'current_user', None),
+            current_user=current_user,
             user_id=user_id
         )
         return entity.update_user(data)
 
+    @jwt_required()
     def delete(self, user_id):
         """删除用户（管理员权限）"""
         entity = UserItemEntity(
-            current_user=getattr(self, 'current_user', None),
+            current_user=current_user,
             user_id=user_id
         )
         return entity.delete_user()
