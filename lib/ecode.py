@@ -20,7 +20,7 @@ class ECode(Enum):
     FORBID = EnumMem(403, ("访问禁止", "Access Forbidden"))
     NOTFOUND = EnumMem(404, ("资源不存在", "Resource Does Not Exist"))
     PARAM = EnumMem(406, ("参数错误", "Parameter Error"))
-    CONFLICT = EnumMem(409, ("特定状态冲突"), "Status Conflict")
+    CONFLICT = EnumMem(409, ("特定状态冲突", "Status Conflict"))
     INTER = EnumMem(500, ("内部错误", "Internal Error"))
     EXTERNAL = EnumMem(503, ("外部错误", "External Error"))
     RUNTIME = EnumMem(504, ("运行时错误", "Runtime Error"))
