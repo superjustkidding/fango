@@ -8,18 +8,19 @@
 # tasks/celery_app.py
 from celery import Celery
 from flask import Flask
+from .config import SetConfig
 
 
 def create_celery_app(flask_app: Flask):
     """创建并配置Celery应用"""
     celery = Celery(
         flask_app.import_name,
-        broker=flask_app.config['CELERY_BROKER_URL'],
-        backend=flask_app.config['CELERY_RESULT_BACKEND']
+        broker=SetConfig['CELERY_BROKER_URL'],
+        backend=SetConfig['CELERY_RESULT_BACKEND']
     )
 
     # 更新配置
-    celery.conf.update(flask_app.config)
+    celery.conf.update(SetConfig)
 
     # 设置任务上下文
     class ContextTask(celery.Task):
