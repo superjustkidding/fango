@@ -25,6 +25,11 @@ def init_app(app):
     restaurant_protected = register_restaurant_routes(main_api)
     all_protected_endpoints.extend(restaurant_protected)
 
+    # 图片上传路由
+    from .uploadfiles import register_upload_routes
+    restaurant_upload = register_upload_routes(main_api)
+    all_protected_endpoints.extend(restaurant_upload)
+
     # 注册主蓝图
     app.register_blueprint(main_bp, url_prefix='/api/v1')
 
