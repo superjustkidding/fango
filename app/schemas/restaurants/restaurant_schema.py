@@ -8,14 +8,17 @@ class Restaurant(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=3))
     email = fields.Email(required=True)
     address = fields.Str(required=True, validate=validate.Length(min=3))
+    description = fields.Str(required=True, validate=validate.Length(min=3))
     password_hash = fields.Str(required=True, validate=validate.Length(min=6))
     phone = fields.Str(required=True, validate=validate.Length(min=3))
+    is_active = fields.Bool(required=True)
 
 
 class UpdateRestaurant(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=3))
     email = fields.Email(required=True)
     address = fields.Str(required=True, validate=validate.Length(min=3))
+    description = fields.Str(required=True, validate=validate.Length(min=3))
     password_hash = fields.Str(required=True, validate=validate.Length(min=6))
     phone = fields.Str(required=True, validate=validate.Length(min=3))
     logo = fields.Str(required=True, validate=validate.Length(min=6))
@@ -35,6 +38,11 @@ class MenuItem(Schema):
     description = fields.Str(required=True, validate=validate.Length(max=200))
     price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
 
+
+class MenuCategorySchema(Schema):
+    name = fields.Str(required=True, validate=validate.Length(min=3))
+    description = fields.Str(required=True, validate=validate.Length(min=3))
+    display_order = fields.Int()
 
 
 

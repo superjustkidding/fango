@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from app import db
-from app.models import Restaurant, MenuItem
+from app.models import Restaurant, MenuItem, MenuCategory
 from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
 
@@ -30,8 +30,6 @@ class RestaurantEntity:
         return restaurants.to_dict(), ECode.SUCC
 
     def create_restaurant(self, data):
-        if not self.current_user or self.current_user.is_admin:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         if Restaurant.query.filter_by(name=data['name']).first():
             raise BusinessValidationError('name already exists', ECode.CONFLICT)
@@ -43,12 +41,13 @@ class RestaurantEntity:
             name = data['name'],
             email = data['email'],
             address = data['address'],
+            description = data['description'],
             phone = data.get('phone'),
             password_hash=generate_password_hash(data['password_hash']),
             is_active = data.get('is_active', True)
         )
         db.session.add(restaurant)
-        db.seesion.commit()
+        db.session.commit()
         return restaurant.to_dict(), ECode.SUCC
 
     def Rlogin(self, data):
@@ -115,7 +114,7 @@ class RestaurantItemEntity:
         return {'message':'deleted successfully '}, ECode.SUCC
 
 
-class MenuItemEnity:
+class MenuItemEntity:
     def __init__(self, current_user, restaurant_id, menuitem_id):
         self.current_user = current_user
         self.restaurant_id = restaurant_id
@@ -163,6 +162,47 @@ class MenuItemEnity:
         db.session.delete(menuitem)
         db.session.commit()
         return {'message': 'deleted successfully '}, ECode.SUCC
+
+
+
+class MenuCategoryEntity:
+    def __init__(self, current_user, restaurant_id, menuitem_id):
+        self.current_user = current_user
+        self.restaurant_id = restaurant_id
+        self.menuitem_id = menuitem_id
+
+    def create_menu_category(self, data):
+        if  not self.current_user.id != self.restaurant_id:
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+
+        if MenuCategory.query.filter_by(name=data['name'], restaurant_id = self.restaurant_id).first():
+            raise BusinessValidationError('name already exists', ECode.CONFLICT)
+
+        category = MenuCategory(
+            name = data['name'],
+            description = data['description'],
+            restaurant_id = self.restaurant_id,
+            display_order = data['display_order'],
+        )
+        db.session.add(category)
+        db.session.commit()
+        return category.to_dict(), ECode.SUCC
+
+    def get_menu_category(self, restaurant_id):
+        category = MenuCategory.query.filter_by(restaurant_id = restaurant_id).first()
+        return category.to_dict(), ECode.SUCC
+
+
+    # def update_menu_category(self, data):
+
+
+
+
+
+
+
+
+
 
 
 

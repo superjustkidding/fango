@@ -5,7 +5,8 @@
 # @File    : __init__.py.py
 # @Software: PyCharm
 
-from .resources import RestaurantListResource, RestaurantResource, RestaurantLoginResource, MenuItemResource
+from .resources import RestaurantListResource, RestaurantResource, RestaurantLoginResource, MenuItemResource, \
+    MenuCategoryResource
 
 
 def register_restaurant_routes(api):
@@ -14,6 +15,7 @@ def register_restaurant_routes(api):
     api.add_resource(RestaurantResource, '/restaurants/<int:restaurant_id>')
     api.add_resource(RestaurantLoginResource, '/restaurants/login')
     api.add_resource(MenuItemResource, '/restaurants/<int:restaurant_id>/menu')
+    api.add_resource(MenuCategoryResource, '/restaurants/<int:restaurant_id>/menucategory')
 
 
     # 返回需要保护的端点列表
