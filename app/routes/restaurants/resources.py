@@ -7,6 +7,7 @@ from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEnti
 from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLoginSchema, UpdateRestaurant
 from app.schemas.schemas import MenuItemSchema
 from app.utils.validation import validate_request
+from flask_jwt_extended import jwt_required, current_user
 
 
 class RestaurantListResource(Resource):
@@ -16,6 +17,7 @@ class RestaurantListResource(Resource):
         entity = RestaurantEntity(current_user=current_user)
         return entity.get_restaurants(**request.args)
 
+    @jwt_required()
     def post(self):
         data = validate_request(Restaurant, request.get_json())
         entity = RestaurantEntity(current_user=current_user)

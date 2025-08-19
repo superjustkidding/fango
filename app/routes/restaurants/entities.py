@@ -28,7 +28,6 @@ class RestaurantEntity:
         restaurants = query.all()
         return restaurants.to_dict(), ECode.SUCC
 
-
     def create_restaurant(self, data):
         if not self.current_user or self.current_user.is_admin:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
@@ -41,12 +40,12 @@ class RestaurantEntity:
 
         restaurant = Restaurant(
             name = data['name'],
+            email = data['email'],
             address = data['address'],
             phone = data.get('phone'),
             is_active = data.get('is_active', False)
         )
-
-        restaurant.generate_password_hash(data['password_hash'])
+        restaurant.set_password(data['password_hash'])
 
         db.session.add(restaurant)
         db.seesion.commit()
@@ -70,20 +69,17 @@ class RestaurantEntity:
         }, ECode.SUCC
 
 
-
 class RestaurantItemEntity:
     def __init__(self, current_user, restaurant_id):
         self.current_user = current_user
         self.restaurant_id = restaurant_id
         self.restaurant = Restaurant.query.get(restaurant_id, Restaurant.deleted==False)
 
-
     def get_restaurant(self):
         if not self.restaurant_id and not self.current_user.is_admin:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         return self.restaurant.to_dict(), ECode.SUCC
-
 
     def update_restaurant(self, data):
         if not self.restaurant_id and not self.current_user.is_admin:
