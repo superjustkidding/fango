@@ -52,7 +52,7 @@ class RestaurantEntity:
         return restaurant.to_dict(), ECode.SUCC
 
     def Rlogin(self, data):
-        restaurant = Restaurant.query.filter_by(name= data['email']).first()
+        restaurant = Restaurant.query.filter_by(email= data['email']).first()
 
         if not restaurant or not restaurant.check_password(data['password_hash']):
             raise BusinessValidationError("邮箱或密码错误", ECode.AUTH)
@@ -140,9 +140,14 @@ class MenuItemEnity:
         db.session.commit()
         return menuitem.to_dict(), ECode.SUCC
 
-    def get_menuitem(self):
-         query = MenuItem.query.filter_by(restaurant_id=self.restaurant_id, is_deleted=False)
-         return query.MenuItem.to_dict(), ECode.SUCC
+    def get_menuitem(self,menuitem_id):
+         menuitem = MenuItem.query.filter_by(restaurant_id=self.restaurant_id,
+                                          menuitem_id = menuitem_id).first()
+         return menuitem.MenuItem.to_dict(), ECode.SUCC
+
+    # def get_all_menuitems(self):
+    #     menuitems = MenuItem.query.filter_by(restaurant_id=self.restaurant_id).all()
+    #     return menuitems, ECode.SUCC
 
     def update_menuitem(self, data):
         if not self.restaurant_id :
@@ -152,6 +157,16 @@ class MenuItemEnity:
                 raise BusinessValidationError('name already exists', ECode.CONFLICT)
         db.session.commit()
         return self.menuitem.to_dict(), ECode.SUCC
+
+    def delete_menuitem(self,menuitem_id):
+        if not self.restaurant_id and not self.current_user :
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+
+        menuitem = MenuItem.query.filter_by(menuitem_id, restaurant_id=self.restaurant_id )
+        db.session.delete(menuitem)
+        db.session.commit()
+        return {'message':'deleted successfully '}, ECode.SUCC
+
 
 
 
