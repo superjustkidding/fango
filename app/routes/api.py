@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import Blueprint, request, current_app
 from flask_restful import Api
 from .jwt import jwt

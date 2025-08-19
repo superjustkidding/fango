@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field, EmailStr, validator, confloat, conint
