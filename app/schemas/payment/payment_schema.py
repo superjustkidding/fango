@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from enum import Enum
 
 from pydantic import validator, Field, confloat

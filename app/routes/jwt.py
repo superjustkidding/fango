@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # jwt.py
 from flask_jwt_extended import JWTManager
 from app.models.users.user import User
