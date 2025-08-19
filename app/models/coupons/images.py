@@ -6,13 +6,6 @@
 # @Software: PyCharm
 
 
-# -*- coding: utf-8 -*-
-# @Time    : 2025/8/9 16:03
-# @Author  : JustKidding
-# @Email   : superjustkidding@gmail.com
-# @File    : coupons.py
-# @Software: PyCharm
-
 from app import db
 from app.models import BaseModel
 
