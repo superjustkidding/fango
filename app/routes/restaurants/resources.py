@@ -6,8 +6,7 @@ from flask_restful import Resource
 from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity, MenuItemEnity
 from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLoginSchema, UpdateRestaurant
 from app.schemas.schemas import MenuItemSchema
-from app.utils.validation import  validate_request
-
+from app.utils.validation import validate_request
 
 
 class RestaurantListResource(Resource):
@@ -19,8 +18,8 @@ class RestaurantListResource(Resource):
 
     def post(self):
         data = validate_request(Restaurant, request.get_json())
-        entity = RestaurantEntity(current_user=getattr(self, 'current_user', None))
-        return  entity.create_restaurant(data)
+        entity = RestaurantEntity(current_user=current_user)
+        return entity.create_restaurant(data)
 
 
 class RestaurantResource(Resource):
@@ -29,7 +28,7 @@ class RestaurantResource(Resource):
     def get(self, restaurant_id):
         entity = RestaurantItemEntity(
             current_user=getattr(self, 'current_user', None),
-            restaurant_id = restaurant_id
+            restaurant_id=restaurant_id
         )
         return entity.get_restaurant()
 
@@ -37,7 +36,7 @@ class RestaurantResource(Resource):
         data = validate_request(UpdateRestaurant, request.get_json())
         entity = RestaurantItemEntity(
             current_user=getattr(self, 'current_user', None),
-            restaurant_id = restaurant_id
+            restaurant_id=restaurant_id
         )
         return entity.update_restaurant(data)
 
@@ -51,8 +50,8 @@ class RestaurantResource(Resource):
 
 class RestaurantLoginResource(Resource):
     endpoint = 'api.RestaurantLoginResource'
-    def post(self):
 
+    def post(self):
         data = validate_request(RestaurantLoginSchema, request.get_json())
         entity = RestaurantEntity()
         return entity.Rlogin(data)
@@ -60,6 +59,7 @@ class RestaurantLoginResource(Resource):
 
 class MenuItemResource(Resource):
     endpoint = 'api.MenuItemResource'
+
     def post(self):
         data = validate_request(MenuItemSchema, request.get_json())
         entity = MenuItemEnity()
@@ -71,6 +71,7 @@ class MenuItemResource(Resource):
             restaurant_id = restaurant_id
         )
         return entity.get_menuitem()
+
     def put(self, restaurant_id):
         data = validate_request(MenuItemSchema, request.get_json())
         entity = MenuItemEnity(

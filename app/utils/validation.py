@@ -8,13 +8,16 @@
 from functools import wraps
 from flask import jsonify
 from marshmallow import ValidationError
+from lib.ecode import ECode
 
 
 class BusinessValidationError(Exception):
     def __init__(self, message, status_code=400):
+        if isinstance(status_code, ECode):
+            status_code = status_code.value
         self.message = message
         self.status_code = status_code
-        super().__init__(message)
+        super().__init__(message, status_code)
 
 
 def validate_request(schema, data=None):

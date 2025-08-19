@@ -1,21 +1,15 @@
 # -*- coding: utf-8 -*-
-from datetime import time, datetime,date
-from enum import Enum
-from typing import Optional, Dict, Any
 
 from flask_marshmallow import Schema
 from marshmallow import fields, validate
-from pydantic import Field, EmailStr, confloat, validator
-
-
 
 
 class Restaurant(Schema):
-   name = fields.Str(required=True, validate=validate.Length(min=3))
-   email = fields.Email(required=True, validate=validate.Email())
-   address = fields.Str(required=True, validate=validate.Length(min=3))
-   password_hash = fields.Str(required=True, validate=validate.Length(min=6))
-   phone = fields.Str(required=True, validate=validate.Length(min=3))
+    name = fields.Str(required=True, validate=validate.Length(min=3))
+    email = fields.Email(required=True, validate=validate.Email())
+    address = fields.Str(required=True, validate=validate.Length(min=3))
+    password_hash = fields.Str(required=True, validate=validate.Length(min=6))
+    phone = fields.Str(required=True, validate=validate.Length(min=3))
 
 
 class UpdateRestaurant(Schema):

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-from flask_jwt_extended import create_access_token
 
 from app import db
 from app.models import Restaurant, MenuItem
 from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
+
+from flask_jwt_extended import create_access_token
 
 
 class RestaurantEntity:
@@ -52,7 +53,7 @@ class RestaurantEntity:
         return restaurant.to_dict(), ECode.SUCC
 
     def Rlogin(self, data):
-        restaurant = Restaurant.query.filter_by(email= data['email']).first()
+        restaurant = Restaurant.query.filter_by(email=data['email']).first()
 
         if not restaurant or not restaurant.check_password(data['password_hash']):
             raise BusinessValidationError("邮箱或密码错误", ECode.AUTH)
@@ -74,7 +75,7 @@ class RestaurantItemEntity:
     def __init__(self, current_user, restaurant_id):
         self.current_user = current_user
         self.restaurant_id = restaurant_id
-        self.restaurant = Restaurant.query.get(restaurant_id, Restaurant.deleted == False )
+        self.restaurant = Restaurant.query.get(restaurant_id, Restaurant.deleted==False)
 
 
     def get_restaurant(self):
@@ -88,7 +89,7 @@ class RestaurantItemEntity:
         if not self.restaurant_id and not self.current_user.is_admin:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
-        if  'name' in data:
+        if 'name' in data:
             if data['name'] != self.restaurant.name and Restaurant.query.filter_by(name=data['name']).first():
                 raise BusinessValidationError('name already exists', ECode.FORBID)
 
@@ -153,7 +154,7 @@ class MenuItemEnity:
         if not self.restaurant_id :
             raise BusinessValidationError("Permission denied", ECode.FORBID)
         if 'name' in data:
-            if  data['name'] != self.menuitem.name and MenuItem.query.filter_by(name=data['name']).first():
+            if data['name'] != self.menuitem.name and MenuItem.query.filter_by(name=data['name']).first():
                 raise BusinessValidationError('name already exists', ECode.CONFLICT)
         db.session.commit()
         return self.menuitem.to_dict(), ECode.SUCC
@@ -165,7 +166,7 @@ class MenuItemEnity:
         menuitem = MenuItem.query.filter_by(menuitem_id, restaurant_id=self.restaurant_id )
         db.session.delete(menuitem)
         db.session.commit()
-        return {'message':'deleted successfully '}, ECode.SUCC
+        return {'message': 'deleted successfully '}, ECode.SUCC
 
 
 
