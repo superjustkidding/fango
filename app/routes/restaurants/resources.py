@@ -18,7 +18,6 @@ class RestaurantListResource(Resource):
         entity = RestaurantEntity(current_user=current_user)
         return entity.get_restaurants(**request.args)
 
-
     def post(self):
         data = validate_request(Restaurant, request.get_json())
         entity = RestaurantEntity(current_user=current_user)
