@@ -5,8 +5,7 @@ from flask_restful import Resource
 
 from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity,  MenuItemEntity, MenuCategoryEntity
 from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLoginSchema, UpdateRestaurant, \
-    MenuCategorySchema
-from app.schemas.schemas import MenuItemSchema
+    MenuCategorySchema, UpdateMenuItemSchema, MenuItemSchema
 from app.utils.validation import validate_request
 from flask_jwt_extended import jwt_required, current_user
 
@@ -29,7 +28,7 @@ class RestaurantResource(Resource):
 
     def get(self, restaurant_id):
         entity = RestaurantItemEntity(
-            current_user=getattr(self, 'current_user', None),
+            current_user= current_user ,
             restaurant_id=restaurant_id
         )
         return entity.get_restaurant()
@@ -44,7 +43,7 @@ class RestaurantResource(Resource):
 
     def delete(self, restaurant_id):
         entity = RestaurantItemEntity(
-            current_user=getattr(self, 'current_user', None),
+            current_user= current_user,
             restaurant_id=restaurant_id
         )
         return entity.delete_resaurant()
@@ -69,22 +68,22 @@ class MenuItemResource(Resource):
 
     def get(self, restaurant_id, menuitem_id):
         entity = MenuItemEntity(
-            current_user=getattr(self, 'current_user', None),
+            current_user= current_user,
             restaurant_id = restaurant_id
         )
         return entity.get_menuitem(menuitem_id)
 
     def put(self, restaurant_id):
-        data = validate_request(MenuItemSchema, request.get_json())
+        data = validate_request(UpdateMenuItemSchema, request.get_json())
         entity = MenuItemEntity(
-            current_user=getattr(self, 'current_user', None),
+            current_user= current_user,
             restaurant_id = restaurant_id
         )
         return entity.update_menuitem(data)
 
     def delete(self, menuitem_id, restaurant_id):
         entity = MenuItemEntity(
-            current_user=getattr(self, 'current_user', None),
+            current_user=current_user,
             restaurant_id = restaurant_id
         )
         return entity.delete_menuitem(menuitem_id)
@@ -106,3 +105,20 @@ class MenuCategoryResource(Resource):
             current_user=current_user,
             restaurant_id=restaurant_id)
         return entity.get_menu_category(restaurant_id)
+
+    def put(self, restaurant_id):
+        data = validate_request(MenuCategorySchema, request.get_json())
+        entity = MenuCategoryEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+        return entity.update_menu_category(data)
+
+    def delete(self, restaurant_id):
+        entity = MenuCategoryEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+        return entity.delete_menu_category()
+
+
