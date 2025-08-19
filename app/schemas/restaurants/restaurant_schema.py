@@ -6,7 +6,7 @@ from marshmallow import fields, validate
 
 class Restaurant(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=3))
-    email = fields.Email(required=True, validate=validate.Email())
+    email = fields.Email(required=True)
     address = fields.Str(required=True, validate=validate.Length(min=3))
     password_hash = fields.Str(required=True, validate=validate.Length(min=6))
     phone = fields.Str(required=True, validate=validate.Length(min=3))
@@ -14,7 +14,7 @@ class Restaurant(Schema):
 
 class UpdateRestaurant(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=3))
-    email = fields.Email(required=True, validate=validate.Email())
+    email = fields.Email(required=True)
     address = fields.Str(required=True, validate=validate.Length(min=3))
     password_hash = fields.Str(required=True, validate=validate.Length(min=6))
     phone = fields.Str(required=True, validate=validate.Length(min=3))
@@ -22,7 +22,7 @@ class UpdateRestaurant(Schema):
 
 
 class RestaurantLoginSchema(Schema):
-    email = fields.Email(required=True, error_messages={"invalid": "邮箱格式无效"})
+    email = fields.Email(required=True)
     password_hash = fields.Str(
         required=True,
         validate=validate.Length(min=6, max=20),
