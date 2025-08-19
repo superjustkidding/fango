@@ -2,6 +2,7 @@ from flask import Blueprint, request, current_app
 from flask_restful import Api
 from .jwt import jwt
 from flask_jwt_extended import verify_jwt_in_request
+from . import register_all_routes
 
 # 创建主蓝图
 main_bp = Blueprint('api', __name__)
@@ -16,19 +17,7 @@ def init_app(app):
     jwt.init_app(app)
 
     # 注册用户路由并收集受保护端点
-    from .users import register_user_routes
-    user_protected = register_user_routes(main_api)
-    all_protected_endpoints.extend(user_protected)
-
-    # 注册餐厅路由并收集受保护端点
-    from .restaurants import register_restaurant_routes
-    restaurant_protected = register_restaurant_routes(main_api)
-    all_protected_endpoints.extend(restaurant_protected)
-
-    # 图片上传路由
-    from .uploadfiles import register_upload_routes
-    restaurant_upload = register_upload_routes(main_api)
-    all_protected_endpoints.extend(restaurant_upload)
+    register_all_routes(main_api, all_protected_endpoints)
 
     # 注册主蓝图
     app.register_blueprint(main_bp, url_prefix='/api/v1')
