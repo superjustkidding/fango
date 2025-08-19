@@ -9,6 +9,7 @@ from app.models.users.user import User
 from app import db
 from app.utils.validation import BusinessValidationError
 from flask_jwt_extended import create_access_token
+from werkzeug.security import generate_password_hash
 
 
 class UserEntity:
@@ -49,6 +50,7 @@ class UserEntity:
             username = data['username'],
             email = data['email'],
             phone = data.get('phone'),
+            password=generate_password_hash(data['password']),
             is_admin = data.get('is_admin', False)
         )
         user.set_password(data['password'])

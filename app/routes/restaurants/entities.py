@@ -5,6 +5,7 @@ from app.models import Restaurant, MenuItem
 from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
 
+from werkzeug.security import generate_password_hash
 from flask_jwt_extended import create_access_token
 
 
@@ -43,10 +44,9 @@ class RestaurantEntity:
             email = data['email'],
             address = data['address'],
             phone = data.get('phone'),
+            password_hash=generate_password_hash(data['password_hash']),
             is_active = data.get('is_active', False)
         )
-        restaurant.set_password(data['password_hash'])
-
         db.session.add(restaurant)
         db.seesion.commit()
         return restaurant.to_dict(), ECode.SUCC
