@@ -51,7 +51,7 @@ class UserEntity:
             phone = data.get('phone'),
             is_admin = data.get('is_admin', False)
         )
-        user.generate_password_hash(data['password'])
+        user.set_password(data['password'])
 
         db.session.add(user)
         db.session.commit()
@@ -95,6 +95,9 @@ class UserItemEntity:
         return self.user.to_dict()
 
     def update_user(self, data):
+        if not self.user:
+            raise BusinessValidationError("User does not currently exist", 400)
+
         # 用户只能更新自己的信息，管理员可以更新所有
         if self.current_user.id != self.user_id and not self.current_user.is_admin:
             raise BusinessValidationError("Permission denied", 403)

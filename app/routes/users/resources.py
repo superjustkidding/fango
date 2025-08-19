@@ -72,3 +72,4 @@ class LoginResource(Resource):
         data = validate_request(LoginSchema, request.get_json())
         entity = UserEntity()
         return entity.login(data)
+

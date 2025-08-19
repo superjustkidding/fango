@@ -9,7 +9,6 @@ from app.schemas.schemas import MenuItemSchema
 from app.utils.validation import  validate_request
 
 
-
 class RestaurantListResource(Resource):
     endpoint = 'api.RestaurantListResource'
 
@@ -20,7 +19,7 @@ class RestaurantListResource(Resource):
     def post(self):
         data = validate_request(Restaurant, request.get_json())
         entity = RestaurantEntity(current_user=getattr(self, 'current_user', None))
-        return  entity.create_restaurant(data)
+        return entity.create_restaurant(data)
 
 
 class RestaurantResource(Resource):
@@ -51,8 +50,8 @@ class RestaurantResource(Resource):
 
 class RestaurantLoginResource(Resource):
     endpoint = 'api.RestaurantLoginResource'
-    def post(self):
 
+    def post(self):
         data = validate_request(RestaurantLoginSchema, request.get_json())
         entity = RestaurantEntity()
         return entity.Rlogin(data)
@@ -60,6 +59,7 @@ class RestaurantLoginResource(Resource):
 
 class MenuItemResource(Resource):
     endpoint = 'api.MenuItemResource'
+
     def post(self):
         data = validate_request(MenuItemSchema, request.get_json())
         entity = MenuItemEnity()
@@ -68,13 +68,12 @@ class MenuItemResource(Resource):
     def get(self, restaurant_id):
         entity = MenuItemEnity(
             current_user=getattr(self, 'current_user', None),
-            restaurant_id = restaurant_id
-        )
+            restaurant_id=restaurant_id)
         return entity.get_menuitem()
+
     def put(self, restaurant_id):
         data = validate_request(MenuItemSchema, request.get_json())
         entity = MenuItemEnity(
             current_user=getattr(self, 'current_user', None),
-            restaurant_id = restaurant_id
-        )
+            restaurant_id=restaurant_id)
         return entity.update_menuitem(data)
