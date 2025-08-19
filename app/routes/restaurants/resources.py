@@ -97,14 +97,13 @@ class MenuCategoryResource(Resource):
     def post(self, restaurant_id):
         data = validate_request(MenuCategorySchema, request.get_json())
         entity = MenuCategoryEntity(
-            current_user=getattr(self, 'current_user', None),
-            restaurant_id = restaurant_id
+            current_user=current_user,
+            restaurant_id=restaurant_id
         )
         return entity.create_menu_category(data)
 
     def get(self, restaurant_id):
         entity = MenuCategoryEntity(
-            current_user=getattr(self, 'current_user', None),
-            restaurant_id = restaurant_id
-        )
-        return entity.get_menu_category()
+            current_user=current_user,
+            restaurant_id=restaurant_id)
+        return entity.get_menu_category(restaurant_id)
