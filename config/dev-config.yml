@@ -10,6 +10,6 @@ development:
   CELERY_ENABLE_UTC: Tru
 
   'UPLOAD_FOLDER': 'uploads/images'
-  'MAX_CONTENT_LENGTH': 16 * 1024 * 1024  # 16MB
+  # 'MAX_CONTENT_LENGTH': 16 * 1024 * 1024  # 16MB
   'ALLOWED_EXTENSIONS':  {'png', 'jpg', 'jpeg', 'gif', 'webp'}
   'BASE_URL': 'http://localhost:5000'
