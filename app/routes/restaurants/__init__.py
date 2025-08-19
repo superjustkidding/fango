@@ -15,6 +15,7 @@ def register_restaurant_routes(api):
     api.add_resource(RestaurantLoginResource, '/restaurants/login')
     api.add_resource(MenuItemResource, '/restaurants/<int:restaurant_id>/menu')
 
+
     # 返回需要保护的端点列表
     return [
         'api.RestaurantListResource',

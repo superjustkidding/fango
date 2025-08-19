@@ -45,7 +45,7 @@ class RestaurantEntity:
             address = data['address'],
             phone = data.get('phone'),
             password_hash=generate_password_hash(data['password_hash']),
-            is_active = data.get('is_active', False)
+            is_active = data.get('is_active', True)
         )
         db.session.add(restaurant)
         db.seesion.commit()
