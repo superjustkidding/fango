@@ -13,7 +13,6 @@ from app.utils.validation import validate_request, BusinessValidationError
 from flask_jwt_extended import jwt_required, current_user
 
 
-
 class UserListResource(Resource):
     endpoint = 'api.UserListResource'
 
@@ -73,3 +72,4 @@ class LoginResource(Resource):
         data = validate_request(LoginSchema, request.get_json())
         entity = UserEntity()
         return entity.login(data)
+

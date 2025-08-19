@@ -65,12 +65,12 @@ class MenuItemResource(Resource):
         entity = MenuItemEnity()
         return entity.create_menu(data)
 
-    def get(self, restaurant_id,menuitem_id):
+    def get(self, restaurant_id):
         entity = MenuItemEnity(
             current_user=getattr(self, 'current_user', None),
             restaurant_id = restaurant_id
         )
-        return entity.get_menuitem(menuitem_id)
+        return entity.get_menuitem()
     def put(self, restaurant_id):
         data = validate_request(MenuItemSchema, request.get_json())
         entity = MenuItemEnity(
@@ -78,10 +78,3 @@ class MenuItemResource(Resource):
             restaurant_id = restaurant_id
         )
         return entity.update_menuitem(data)
-
-    def delete(self,restaurant_id, menuitem_id):
-        entity = MenuItemEnity(
-            current_user=getattr(self, 'current_user', None),
-            restaurant_id = restaurant_id,
-        )
-        return entity.delete_menuitem(menuitem_id)
