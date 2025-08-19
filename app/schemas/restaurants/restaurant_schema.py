@@ -33,10 +33,18 @@ class RestaurantLoginSchema(Schema):
     )
 
 
-class MenuItem(Schema):
+class MenuItemSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=3))
     description = fields.Str(required=True, validate=validate.Length(max=200))
     price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
+    category_id = fields.Integer(required=True)
+
+
+class UpdateMenuItemSchema(Schema):
+    name = fields.Str(required=True, validate=validate.Length(min=3))
+    description = fields.Str(required=True, validate=validate.Length(max=200))
+    price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
+
 
 
 class MenuCategorySchema(Schema):

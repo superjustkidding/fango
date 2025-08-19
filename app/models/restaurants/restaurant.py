@@ -84,6 +84,13 @@ class MenuCategory(BaseModel):
     # 关系
     items = db.relationship('MenuItem', backref='category', lazy=True)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+        }
+
     def __repr__(self):
         return f'<MenuCategory {self.name}>'
 
@@ -118,6 +125,7 @@ class MenuItem(BaseModel):
             "name": self.name,
             "description": self.description,
             "price": self.price,
+            "category_id" : self.category_id,
         }
 
     def __repr__(self):

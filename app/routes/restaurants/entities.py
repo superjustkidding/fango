@@ -131,6 +131,7 @@ class MenuItemEntity:
             name = data['name'],
             description = data['description'],
             price = data['price'],
+            category_id = data['category_id'],
         )
         db.session.add(menuitem)
         db.session.commit()
@@ -189,4 +190,28 @@ class MenuCategoryEntity:
     def get_menu_category(self, restaurant_id):
         categorys = MenuCategory.query.filter_by(restaurant_id=restaurant_id, deleted=False).all()
         return [cate.to_dict() for cate in categorys], ECode.SUCC
+
+
+    def update_menu_category(self, data):
+        if not self.restaurant_id :
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+
+        if 'name' in data:
+            if MenuCategory.query.filter_by(name=data['name'], restaurant_id = self.restaurant_id).first():
+                raise BusinessValidationError('name already exists', ECode.CONFLICT)
+
+        db.session.commit()
+        return MenuCategory.to_dict(), ECode.SUCC
+
+
+    def delete_menu_category(self,restaurant_id):
+        if not self.restaurant_id and not self.current_user :
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+        menucategory = MenuCategory.query.filter_by(restaurant_id=self.restaurant_id)
+        db.session.delete(menucategory)
+        db.session.commit()
+        return {'message': 'deleted successfully '}, ECode.SUCC
+
+
+
 
