@@ -1,6 +1,0 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2025/8/16 22:15
-# @Author  : JustKidding
-# @Email   : superjustkidding@gmail.com
-# @File    : __init__.py.py
-# @Software: PyCharm

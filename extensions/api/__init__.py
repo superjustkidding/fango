@@ -1,6 +1,5 @@
  # -*- coding:utf-8 -*-
 
-
 class ApiNamespace(object):
     def __init__(self, namespace, api):
         """

@@ -10,7 +10,7 @@ from flask import request
 from .entities import UserEntity, UserItemEntity
 from app.schemas.user.user import UserCreateSchema, UserUpdateSchema, LoginSchema
 from app.utils.validation import validate_request, BusinessValidationError
-from app.routes.jwt import current_user, admin_required
+from app.routes.jwt import current_user, admin_required, user_required
 
 
 class UserListResource(Resource):
@@ -24,6 +24,7 @@ class UserListResource(Resource):
         entity = UserEntity(current_user=current_user)
         return entity.get_users(**request.args)
 
+    @admin_required
     def post(self):
         """创建新用户（管理员权限）"""
         data = validate_request(UserCreateSchema, request.get_json())
@@ -34,6 +35,7 @@ class UserListResource(Resource):
 class UserResource(Resource):
     endpoint = 'api.UserResource'
 
+    @user_required
     def get(self, user_id):
         """获取单个用户信息"""
         entity = UserItemEntity(
@@ -42,6 +44,7 @@ class UserResource(Resource):
         )
         return entity.get_user()
 
+    @user_required
     def put(self, user_id):
         """更新用户信息"""
         data = validate_request(UserUpdateSchema, request.get_json())
@@ -51,6 +54,7 @@ class UserResource(Resource):
         )
         return entity.update_user(data)
 
+    @admin_required
     def delete(self, user_id):
         """删除用户（管理员权限）"""
         entity = UserItemEntity(
