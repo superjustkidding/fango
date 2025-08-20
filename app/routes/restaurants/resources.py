@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import request
-from flask_jwt_extended import current_user
+from flask_jwt_extended import current_user, get_current_user
 from flask_restful import Resource
 
 from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity,  MenuItemEntity, MenuCategoryEntity
@@ -12,6 +12,7 @@ from flask_jwt_extended import jwt_required, current_user
 
 class RestaurantListResource(Resource):
     endpoint = 'api.RestaurantListResource'
+
 
     def get(self):
         entity = RestaurantEntity(current_user=current_user)
@@ -61,30 +62,38 @@ class RestaurantLoginResource(Resource):
 class MenuItemResource(Resource):
     endpoint = 'api.MenuItemResource'
 
-    def post(self):
+    @jwt_required()
+    def post(self, restaurant_id):
+        current_user = get_current_user()
         data = validate_request(MenuItemSchema, request.get_json())
-        entity = MenuItemEntity()
+        entity = MenuItemEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
         return entity.create_menu(data)
 
-    def get(self, restaurant_id, menuitem_id):
+
+    def get(self, menuitem_id):
         entity = MenuItemEntity(
             current_user= current_user,
-            restaurant_id = restaurant_id
+            menuitem_id= menuitem_id
         )
         return entity.get_menuitem(menuitem_id)
 
-    def put(self, restaurant_id):
+
+    def put(self, menuitem_id):
         data = validate_request(UpdateMenuItemSchema, request.get_json())
         entity = MenuItemEntity(
             current_user= current_user,
-            restaurant_id = restaurant_id
+            menuitem_id = menuitem_id
         )
         return entity.update_menuitem(data)
 
-    def delete(self, menuitem_id, restaurant_id):
+
+    def delete(self, menuitem_id):
         entity = MenuItemEntity(
             current_user=current_user,
-            restaurant_id = restaurant_id
+            menuitem_id = menuitem_id
         )
         return entity.delete_menuitem(menuitem_id)
 

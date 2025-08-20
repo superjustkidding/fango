@@ -61,6 +61,8 @@ class Restaurant(BaseModel, UserMixin):
             "id": self.id,
             "name": self.name,
             "address": self.address,
+            "description": self.description,
+            "email": self.email,
             "phone": self.phone,
             "is_active": self.is_active,
         }
