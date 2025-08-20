@@ -22,7 +22,27 @@ class BaseModel(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def update(self, **kwargs):
+        """更新对象属性"""
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        self.updated_at = datetime.now()
+        db.session.commit()
+
     def delete(self):
-        """从数据库删除对象"""
+        """软删除对象"""
+        self.deleted = True
+        self.deleted_at = datetime.now()
+        db.session.commit()
+
+    def restore(self):
+        """恢复软删除的对象"""
+        self.deleted = False
+        self.deleted_at = None
+        db.session.commit()
+
+    def hard_delete(self):
+        """从数据库永久删除对象"""
         db.session.delete(self)
         db.session.commit()
