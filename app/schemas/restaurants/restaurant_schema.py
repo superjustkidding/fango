@@ -37,7 +37,11 @@ class MenuItemSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=3))
     description = fields.Str(required=True, validate=validate.Length(max=200))
     price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
+    image = fields.Str(required=True)
+    preparation_time = fields.Integer()
     category_id = fields.Integer(required=True)
+    is_available = fields.Bool(required=True)
+    is_featured = fields.Bool(required=False)
 
 
 class UpdateMenuItemSchema(Schema):
@@ -45,6 +49,7 @@ class UpdateMenuItemSchema(Schema):
     description = fields.Str(required=True, validate=validate.Length(max=200))
     price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
     category_id = fields.Integer(required=True)
+    is_available = fields.Bool(required=True)
 
 
 

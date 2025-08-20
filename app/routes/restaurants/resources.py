@@ -3,7 +3,8 @@ from flask import request
 from flask_jwt_extended import current_user, get_current_user
 from flask_restful import Resource
 
-from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity,  MenuItemEntity, MenuCategoryEntity
+from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity, MenuItemListEntity, \
+    MenuCategoryEntity, MenuItemEntity
 from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLoginSchema, UpdateRestaurant, \
     MenuCategorySchema, UpdateMenuItemSchema, MenuItemSchema
 from app.utils.validation import validate_request
@@ -59,43 +60,55 @@ class RestaurantLoginResource(Resource):
         return entity.Rlogin(data)
 
 
-class MenuItemResource(Resource):
-    endpoint = 'api.MenuItemResource'
+class MenuItemListResource(Resource):
+    endpoint = 'api.MenuListItemResource'
 
     @jwt_required()
     def post(self, restaurant_id):
         current_user = get_current_user()
         data = validate_request(MenuItemSchema, request.get_json())
-        entity = MenuItemEntity(
+        entity = MenuItemListEntity(
             current_user=current_user,
             restaurant_id=restaurant_id
         )
-        return entity.create_menu(data)
+        return entity.create_menuitem(data)
 
-
-    def get(self, menuitem_id):
-        entity = MenuItemEntity(
-            current_user= current_user,
-            menuitem_id= menuitem_id
+    @jwt_required()
+    def get(self, restaurant_id):
+        entity = MenuItemListEntity(
+            current_user=get_current_user(),
+            restaurant_id=restaurant_id
         )
-        return entity.get_menuitem(menuitem_id)
+        return entity.get_menuitems()
 
+class MenuItemResource(Resource):
+    @jwt_required()
+    def get(self, menuitem_id):
+        """获取单个菜品"""
+        entity = MenuItemEntity(
+            current_user=current_user,
+            menuitem_id=menuitem_id
+        )
+        return entity.get_menuitem()
 
+    @jwt_required()
     def put(self, menuitem_id):
+        """更新单个菜品"""
         data = validate_request(UpdateMenuItemSchema, request.get_json())
         entity = MenuItemEntity(
-            current_user= current_user,
-            menuitem_id = menuitem_id
+            current_user=current_user,
+            menuitem_id=menuitem_id
         )
         return entity.update_menuitem(data)
 
-
+    @jwt_required()
     def delete(self, menuitem_id):
+        """删除单个菜品"""
         entity = MenuItemEntity(
             current_user=current_user,
-            menuitem_id = menuitem_id
+            menuitem_id=menuitem_id
         )
-        return entity.delete_menuitem(menuitem_id)
+        return entity.delete_menuitem()
 
 
 class MenuCategoryResource(Resource):

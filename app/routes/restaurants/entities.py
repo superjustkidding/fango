@@ -16,9 +16,6 @@ class RestaurantEntity:
     """获取餐馆列表"""
     def get_restaurants(self, **data):
 
-        if not self.current_user or self.current_user.is_admin:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
-
         query = Restaurant.query
 
         if 'name' in data:
@@ -79,7 +76,7 @@ class RestaurantItemEntity:
         self.restaurant_id = restaurant_id
         self.restaurant = Restaurant.query.get(restaurant_id)
 
-    """餐馆"""
+    """获取单个餐馆"""
     def get_restaurant(self):
         if not self.restaurant_id and not self.current_user.is_admin:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
@@ -136,63 +133,127 @@ class RestaurantItemEntity:
         return {'message':'deleted successfully '}, ECode.SUCC
 
 
-class MenuItemEntity:
+class MenuItemListEntity:
     def __init__(self, current_user, restaurant_id, menuitem_id = None):
         self.current_user = current_user
         self.restaurant_id = restaurant_id
-        self.menuitem = MenuItem.query.get(menuitem_id)
+        if menuitem_id is not None:
+            self.menuitem = MenuItem.query.get(menuitem_id)
+        else:
+            self.menuitem = None
 
 
-    """菜品创建"""
-
-    def create_menu(self, data):
-
-        if not self.current_user.id != self.restaurant_id:
+    """ 菜品创建 """
+    def create_menuitem(self, data):
+        # 权限校验
+        if self.current_user.id != self.restaurant_id:
             raise BusinessValidationError("Permission denied", ECode.ERROR)
 
-        if MenuItem.query.filter_by(name=data['name']).first():
+        # 避免重名
+        if MenuItem.query.filter_by(name=data['name'], restaurant_id=self.restaurant_id).first():
             raise BusinessValidationError('name already exists', ECode.ERROR)
 
+        # 分类校验
+        category = MenuCategory.query.get(data["category_id"])
+        if not category or category.restaurant_id != self.restaurant_id:
+            raise BusinessValidationError("Invalid category_id", ECode.ERROR)
+
         menuitem = MenuItem(
-            name = data['name'],
-            description = data['description'],
-            price = data['price'],
-            category_id = data['category_id'],
+            name=data['name'],
+            description=data['description'],
+            price=data['price'],
+            image=data.get('image'),
+            preparation_time=data['preparation_time'],
+            is_available=data.get('is_available', True),
+            is_featured=data.get('is_featured', False),
+            restaurant_id=self.restaurant_id,
+            category_id=data['category_id'],
         )
+
         db.session.add(menuitem)
         db.session.commit()
+
         return menuitem.to_dict(), ECode.SUCC
 
-    """菜品获取"""
-    def get_menuitem(self,menuitem_id):
-         menuitem = MenuItem.query.filter_by(restaurant_id=self.restaurant_id,
-                                          menuitem_id = menuitem_id).first()
-         return menuitem.MenuItem.to_dict(), ECode.SUCC
 
+    """ 获取餐厅所有菜品 """
+    def get_menuitems(self):
+        menus = MenuItem.query.filter_by(restaurant_id=self.restaurant_id, deleted=False).all()
+        return [menu.to_dict() for menu in menus], ECode.SUCC
+
+class MenuItemEntity:
+    def __init__(self, current_user, menuitem_id=None):
+        self.current_user = current_user
+        self.menuitem = MenuItem.query.get(menuitem_id) if menuitem_id else None
+
+    """ 获取单个菜品 """
+    def get_menuitem(self):
+        if not self.menuitem or self.menuitem.restaurant_id != self.restaurant_id or self.menuitem.deleted:
+            raise BusinessValidationError("Menu item not found", ECode.ERROR)
+        return self.menuitem.to_dict(), ECode.SUCC
 
 
     """菜品更新"""
     def update_menuitem(self, data):
 
-        if not self.restaurant_id :
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
-        if 'name' in data:
-            if data['name'] != self.menuitem.name and MenuItem.query.filter_by(name=data['name']).first():
-                raise BusinessValidationError('name already exists', ECode.CONFLICT)
+         # 权限校验
+        if self.current_user.id != self.restaurant_id:
+            raise BusinessValidationError("Permission denied", ECode.ERROR)
+
+        # 菜品是否存在
+        if not self.menuitem or self.menuitem.restaurant_id != self.restaurant_id:
+            raise BusinessValidationError("Menu item not found", ECode.ERROR)
+
+        # 分类校验（如果传了 category_id）
+        if "category_id" in data:
+            category = MenuCategory.query.get(data["category_id"])
+            if not category or category.restaurant_id != self.restaurant_id:
+                raise BusinessValidationError("Invalid category_id", ECode.ERROR)
+            self.menuitem.category_id = data["category_id"]
+
+        # 字段更新
+        if "name" in data:
+            # 避免重名
+            existing = MenuItem.query.filter_by(name=data["name"], restaurant_id=self.restaurant_id).first()
+            if existing and existing.id != self.menuitem.id:
+                raise BusinessValidationError("name already exists", ECode.ERROR)
+            self.menuitem.name = data["name"]
+
+        if "description" in data:
+            self.menuitem.description = data["description"]
+
+        if "price" in data:
+            self.menuitem.price = data["price"]
+
+        if "image" in data:
+            self.menuitem.image = data["image"]
+
+        if "is_available" in data:
+            self.menuitem.is_available = data["is_available"]
+
+        if "is_featured" in data:
+            self.menuitem.is_featured = data["is_featured"]
+
         db.session.commit()
+
         return self.menuitem.to_dict(), ECode.SUCC
 
 
     """菜品删除"""
     def delete_menuitem(self,menuitem_id):
 
-        if not self.restaurant_id and not self.current_user :
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
+        if not self.menuitem:
+            raise BusinessValidationError("Menu item not found", ECode.ERROR)
 
-        menuitem = MenuItem.query.filter_by(menuitem_id, restaurant_id=self.restaurant_id )
-        db.session.delete(menuitem)
+            # 权限校验：当前用户只能删除自己餐厅的菜品
+        if self.menuitem.restaurant_id != self.current_user.id:
+            raise BusinessValidationError("Permission denied", ECode.ERROR)
+
+            # 逻辑删除
+        self.menuitem.deleted = True
+
         db.session.commit()
-        return {'message': 'deleted successfully '}, ECode.SUCC
+        return {"message": "Menu item deleted successfully"}, ECode.SUCC
 
 
 class MenuCategoryEntity:

@@ -128,6 +128,8 @@ class MenuItem(BaseModel):
             "description": self.description,
             "price": self.price,
             "category_id" : self.category_id,
+            "is_available": self.is_available,
+            "is_featured": self.is_featured,
         }
 
     def __repr__(self):
