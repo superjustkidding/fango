@@ -6,8 +6,7 @@ from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
 
 from werkzeug.security import generate_password_hash
-from flask_jwt_extended import create_access_token, jwt_required
-
+from app.routes.jwt import create_auth_token
 
 class RestaurantEntity:
     def __init__(self, current_user=None):
@@ -58,7 +57,7 @@ class RestaurantEntity:
         if not restaurant or not restaurant.check_password(data['password']):
             raise BusinessValidationError("邮箱或密码错误", ECode.AUTH)
 
-        access_token = create_access_token(identity=restaurant)
+        access_token = create_auth_token(identity=restaurant)
 
         return {
             'access_token': access_token,

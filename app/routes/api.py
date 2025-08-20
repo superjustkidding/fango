@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from flask import Blueprint, request, current_app
+from flask import Blueprint
 from flask_restful import Api
-from .jwt import jwt
-from flask_jwt_extended import verify_jwt_in_request
+from app import jwt
 from . import register_all_routes
 
 # 创建主蓝图
@@ -24,20 +23,3 @@ def init_app(app):
     # 注册主蓝图
     app.register_blueprint(main_bp, url_prefix='/api/v1')
 
-    # 添加JWT保护钩子
-    add_jwt_protection(app)
-
-
-def add_jwt_protection(app):
-    """添加JWT认证保护钩子"""
-
-    @app.before_request
-    def protect_endpoints():
-        """JWT 认证保护端点"""
-        # 检查当前端点是否需要保护
-        if request.endpoint in all_protected_endpoints:
-            try:
-                verify_jwt_in_request()
-            except Exception as e:
-                current_app.logger.error(f"JWT verification failed: {str(e)}")
-                raise

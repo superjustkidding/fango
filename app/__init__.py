@@ -6,10 +6,12 @@ from flask.cli import with_appcontext
 from config import load_config
 from flask_migrate import Migrate
 from datetime import timedelta
+from flask_jwt_extended import JWTManager
 
 # 初始化扩展
 db = SQLAlchemy()
 migrate = Migrate()
+jwt = JWTManager()
 
 
 def create_app():
@@ -27,7 +29,6 @@ def create_app():
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)  # 刷新令牌30天过期
 
     # 初始化JWT
-    from .routes.jwt import jwt
     jwt.init_app(app)
 
     # 初始化路由
@@ -39,7 +40,6 @@ def create_app():
     register_error_handlers(app)
 
     # 创建超级管理员（如果不存在）
-    # 注册 CLI 命令
     @app.cli.command("create-admin")
     @with_appcontext
     def create_admin():

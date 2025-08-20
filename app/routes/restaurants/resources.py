@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import request
-from flask_jwt_extended import current_user, get_current_user
+from flask_jwt_extended import get_current_user
 from flask_restful import Resource
 
 from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity, MenuItemListEntity, \

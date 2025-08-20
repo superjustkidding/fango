@@ -8,8 +8,8 @@
 from app.models.users.user import User
 from app import db
 from app.utils.validation import BusinessValidationError
-from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash
+from app.routes.jwt import create_auth_token
 
 
 class UserEntity:
@@ -69,7 +69,7 @@ class UserEntity:
             raise BusinessValidationError("Invalid username or password", 401)
 
         # 创建访问令牌
-        access_token = create_access_token(identity=user)
+        access_token = create_auth_token(user)
 
         return {
             'access_token': access_token,
