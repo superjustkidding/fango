@@ -114,7 +114,7 @@ class RestaurantItemEntity:
             self.restaurant.phone = data['phone']
 
         if 'password_hash' in data:
-                self.restaurant.password_hash = data['password_hash']
+            self.restaurant.password_hash = generate_password_hash(data['password_hash'])
 
         db.session.commit()
         db.session.refresh(self.restaurant)
