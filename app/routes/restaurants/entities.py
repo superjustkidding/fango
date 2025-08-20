@@ -26,7 +26,6 @@ class RestaurantEntity:
         restaurants = query.all()
         return restaurants.to_dict(), ECode.SUCC
 
-
     """创建餐馆"""
     def create_restaurant(self, data):
 
@@ -49,7 +48,6 @@ class RestaurantEntity:
         db.session.commit()
         return restaurant.to_dict(), ECode.SUCC
 
-
     """餐馆登录"""
     def Rlogin(self, data):
         restaurant = Restaurant.query.filter_by(email=data['email']).first()
@@ -57,7 +55,7 @@ class RestaurantEntity:
         if not restaurant or not restaurant.check_password(data['password']):
             raise BusinessValidationError("邮箱或密码错误", ECode.AUTH)
 
-        access_token = create_auth_token(identity=restaurant)
+        access_token = create_auth_token(restaurant)
 
         return {
             'access_token': access_token,
@@ -81,7 +79,6 @@ class RestaurantItemEntity:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         return self.restaurant.to_dict(), ECode.SUCC
-
 
     """餐馆更新"""
     def update_restaurant(self, data):
@@ -129,7 +126,7 @@ class RestaurantItemEntity:
 
         self.restaurant.deleted = True
         db.session.commit()
-        return {'message':'deleted successfully '}, ECode.SUCC
+        return {'message': 'deleted successfully '}, ECode.SUCC
 
 
 class MenuItemListEntity:
@@ -140,7 +137,6 @@ class MenuItemListEntity:
             self.menuitem = MenuItem.query.get(menuitem_id)
         else:
             self.menuitem = None
-
 
     """ 菜品创建 """
     def create_menuitem(self, data):
@@ -174,7 +170,6 @@ class MenuItemListEntity:
 
         return menuitem.to_dict(), ECode.SUCC
 
-
     """ 获取餐厅所有菜品 """
     def get_menuitems(self):
         menus = MenuItem.query.filter_by(restaurant_id=self.restaurant_id, deleted=False).all()
@@ -191,10 +186,8 @@ class MenuItemEntity:
             raise BusinessValidationError("Menu item not found", ECode.ERROR)
         return self.menuitem.to_dict(), ECode.SUCC
 
-
     """菜品更新"""
     def update_menuitem(self, data):
-
          # 权限校验
         if self.current_user.id != self.restaurant_id:
             raise BusinessValidationError("Permission denied", ECode.ERROR)
@@ -236,7 +229,6 @@ class MenuItemEntity:
         db.session.commit()
 
         return self.menuitem.to_dict(), ECode.SUCC
-
 
     """菜品删除"""
     def delete_menuitem(self,menuitem_id):
