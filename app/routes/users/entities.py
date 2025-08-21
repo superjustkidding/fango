@@ -44,7 +44,6 @@ class UserEntity:
         # 检查邮箱是否已存在
         if User.query.filter_by(email=data['email']).first():
             raise BusinessValidationError("Email already exists", 400)
-
         # 创建用户
         user = User(
             username = data['username'],
@@ -53,8 +52,6 @@ class UserEntity:
             password=generate_password_hash(data['password']),
             is_admin = data.get('is_admin', False)
         )
-        user.set_password(data['password'])
-
         db.session.add(user)
         db.session.commit()
         return user.to_dict(), 201
@@ -79,6 +76,25 @@ class UserEntity:
                 "email": user.email
             }
         }
+
+    def register(self, data):
+        if User.query.filter_by(username=data['username']).first():
+            raise BusinessValidationError("Username already exists", 400)
+
+        # 检查邮箱是否已存在
+        if User.query.filter_by(email=data['email']).first():
+            raise BusinessValidationError("Email already exists", 400)
+        # 创建用户
+        user = User(
+            username = data['username'],
+            email = data['email'],
+            phone = data.get('phone'),
+            password=generate_password_hash(data['password']),
+        )
+        db.session.add(user)
+        db.session.commit()
+        return user.to_dict(), 201
+
 
 class UserItemEntity:
     def __init__(self, current_user, user_id):
@@ -143,7 +159,6 @@ class UserItemEntity:
             raise BusinessValidationError("Cannot delete your own account", 400)
 
         self.user.deleted = True
-        # db.session.delete(self.user)
         db.session.commit()
         return {"message": "User deleted successfully"}
 

@@ -73,3 +73,24 @@ class LoginResource(Resource):
         entity = UserEntity()
         return entity.login(data)
 
+class LogoutResource(Resource):
+    endpoint = 'api.LogoutResource'
+
+    @user_required
+    def delete(self, user_id):
+        """删除用户（管理员权限）"""
+        entity = UserItemEntity(
+            current_user=current_user,
+            user_id=user_id
+        )
+        return entity.delete_user()
+
+class RegisterResource(Resource):
+    endpoint = 'api.RegisterResource'
+
+    def post(self):
+        """用户注册"""
+        data = validate_request(LoginSchema, request.get_json())
+        entity = UserEntity()
+        return entity.register(data)
+
