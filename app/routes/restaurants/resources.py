@@ -3,9 +3,10 @@ from flask import request
 
 from flask_restful import Resource
 from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity, MenuItemListEntity, \
-    MenuCategoryEntity, MenuItemEntity
+    MenuCategoryEntity, MenuItemEntity, MenuCategoryListEntity, MenuOptionGroupListEntity, MenuOptionGroupEntity, \
+    MenuOptionListEntity
 from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLoginSchema, UpdateRestaurant, \
-    MenuCategorySchema, UpdateMenuItemSchema, MenuItemSchema
+    MenuCategorySchema, UpdateMenuItemSchema, MenuItemSchema, MenuOptionGroupSchema, UpdateMenuOptionGroupSchema
 from app.utils.validation import validate_request
 from app.routes.jwt import current_user, restaurant_required
 
@@ -112,16 +113,16 @@ class MenuItemResource(Resource):
             current_user=current_user,
             menuitem_id=menuitem_id
         )
-        return entity.delete_menuitem(menuitem_id)
+        return entity.delete_menuitem()
 
 
-class MenuCategoryResource(Resource):
-    endpoint = 'api.MenuCategoryResource'
+class MenuCategoryListResource(Resource):
+    endpoint = 'api.MenuCategoryListResource'
 
     @restaurant_required
     def post(self, restaurant_id):
         data = validate_request(MenuCategorySchema, request.get_json())
-        entity = MenuCategoryEntity(
+        entity = MenuCategoryListEntity(
             current_user=current_user,
             restaurant_id=restaurant_id
         )
@@ -129,26 +130,94 @@ class MenuCategoryResource(Resource):
 
     @restaurant_required
     def get(self, restaurant_id):
-        entity = MenuCategoryEntity(
+        entity = MenuCategoryListEntity(
             current_user=current_user,
             restaurant_id=restaurant_id)
         return entity.get_menu_category(restaurant_id)
 
+
+class MenuCategoryResource(Resource):
+    endpoint = 'api.MenuCategoryResource'
+
     @restaurant_required
-    def put(self, restaurant_id):
+    def put(self, menucategory_id):
         data = validate_request(MenuCategorySchema, request.get_json())
         entity = MenuCategoryEntity(
             current_user=current_user,
-            restaurant_id=restaurant_id
+            menucategory_id=menucategory_id
         )
         return entity.update_menu_category(data)
 
     @restaurant_required
-    def delete(self, restaurant_id):
+    def delete(self, menucategory_id):
         entity = MenuCategoryEntity(
             current_user=current_user,
-            restaurant_id=restaurant_id
+            menucategory_id = menucategory_id
         )
         return entity.delete_menu_category()
+
+
+class MenuOptionGroupListResource(Resource):
+    endpoint = 'api.MenuOptionGroupListResource'
+
+    @restaurant_required
+    def get(self, menuitem_id):
+        entity = MenuOptionGroupListEntity(
+            current_user=current_user,
+            menu_item_id=menuitem_id
+        )
+        return entity.get_menu_group()
+
+    @restaurant_required
+    def post(self, menuitem_id):
+        data = validate_request(MenuOptionGroupSchema, request.get_json())
+        entity = MenuOptionGroupListEntity(
+            current_user=current_user,
+            menu_item_id=menuitem_id
+        )
+        return entity.create_menu_group(data)
+
+
+class MenuOptionGroupResource(Resource):
+    endpoint = 'api.MenuOptionGroupResource'
+
+    @restaurant_required
+    def put(self, group_id):
+        data = validate_request(UpdateMenuOptionGroupSchema, request.get_json())
+        entity = MenuOptionGroupEntity(
+            current_user=current_user,
+            group_id=group_id,
+        )
+        return entity.update_menu_group(data)
+
+    @restaurant_required
+    def delete(self, group_id):
+        entity = MenuOptionGroupEntity(
+            current_user=current_user,
+            group_id=group_id,
+        )
+        return entity.delete_menu_group()
+
+
+class MenuOptionListResource(Resource):
+    endpoint = 'api.MenuOptionResource'
+
+    @restaurant_required
+    def get(self, option_group_id):
+        entity = MenuOptionListEntity(
+            current_user=current_user,
+            option_group_id=option_group_id
+        )
+        return entity.get_options()
+
+    @restaurant_required
+    def post(self, option_group_id):
+        data = validate_request(MenuOptionGroupSchema, request.get_json())
+        entity = MenuOptionListEntity(
+            current_user=current_user,
+            option_group_id=option_group_id
+        )
+        return entity.create_option(data)
+
 
 

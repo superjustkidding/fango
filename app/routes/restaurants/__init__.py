@@ -5,8 +5,9 @@
 # @File    : __init__.py.py
 # @Software: PyCharm
 
-from .resources import RestaurantListResource, RestaurantResource, RestaurantLoginResource,  \
-    MenuCategoryResource, MenuItemResource, MenuItemListResource
+from .resources import RestaurantListResource, RestaurantResource, RestaurantLoginResource, \
+    MenuCategoryResource, MenuItemResource, MenuItemListResource, MenuCategoryListResource, MenuOptionGroupListResource, \
+    MenuOptionGroupResource, MenuOptionListResource
 
 
 def register_restaurant_routes(api):
@@ -15,8 +16,12 @@ def register_restaurant_routes(api):
     api.add_resource(RestaurantResource, '/restaurants/<int:restaurant_id>')  # 餐馆详情
     api.add_resource(RestaurantLoginResource, '/restaurants/login')  # 餐馆登录
     api.add_resource(MenuItemListResource, '/restaurants/<int:restaurant_id>/menu')  # 菜品
-    api.add_resource(MenuItemResource, '/menuitems/<int:menuitem_id>')
-    api.add_resource(MenuCategoryResource, '/restaurants/<int:restaurant_id>/menucategory')  # 菜品分类
+    api.add_resource(MenuItemResource, '/menuitem/<int:menuitem_id>')  # 菜品详情
+    api.add_resource(MenuCategoryListResource, '/restaurants/<int:restaurant_id>/menucategory')  # 菜品分类
+    api.add_resource(MenuCategoryResource, '/categories/<int:menucategory_id>')  # 菜品分类详情
+    api.add_resource(MenuOptionGroupListResource, '/menuitem/<int:menuitem_id>/option_group')  # 菜品选项组
+    api.add_resource(MenuOptionGroupResource, '/option_group/<group_id>')  # 菜品选项组详情
+    api.add_resource(MenuOptionListResource, '/option_group/<group_id>/options')  # 菜品选项
 
     # 返回需要保护的端点列表
     return [
@@ -24,7 +29,9 @@ def register_restaurant_routes(api):
         'api.RestaurantResource',
         'api.RestaurantLoginResource',
         'api.MenuItemResource',
-        'api.MenuItemListResource'
+        'api.MenuItemListResource',
+        'api.MenuCategoryListResource',
         'api.MenuCategoryResource',
+        'api.MenuOptionGroupListResource',
+        'api.MenuOptionGroupResource',
     ]
-

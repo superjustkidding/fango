@@ -48,15 +48,36 @@ class UpdateMenuItemSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=3))
     description = fields.Str(required=True, validate=validate.Length(max=200))
     price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
+    image = fields.Str(required=True)
     category_id = fields.Integer(required=True)
     is_available = fields.Bool(required=True)
-
+    is_featured = fields.Bool(required=False)
 
 
 class MenuCategorySchema(Schema):
-    name = fields.Str(required=True, validate=validate.Length(min=3))
-    description = fields.Str(required=True, validate=validate.Length(min=3))
+    name = fields.Str(required=True, validate=validate.Length(min=1))
+    description = fields.Str()
     display_order = fields.Int()
+
+
+class MenuOptionGroupSchema(Schema):
+    name = fields.Str(required=True, validate=validate.Length(min=1))
+    is_required = fields.Bool(required=True)
+    max_selections = fields.Int(required=True)
+    min_selections = fields.Int(required=True)
+
+
+class UpdateMenuOptionGroupSchema(Schema):
+    name = fields.Str(required=True, validate=validate.Length(min=1))
+    is_required = fields.Bool(required=True)
+    max_selections = fields.Int()
+    min_selections = fields.Int()
+
+class MenuOptionSchema(Schema):
+    name = fields.Str(required=True, validate=validate.Length(min=1))
+    price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
+
+
 
 
 

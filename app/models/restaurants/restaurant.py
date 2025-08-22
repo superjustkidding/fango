@@ -152,6 +152,17 @@ class MenuOptionGroup(BaseModel):
     # 关系
     options = db.relationship('MenuOption', backref='option_group', lazy=True)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "is_required": self.is_required,
+            "max_selections": self.max_selections,
+            "min_selections": self.min_selections,
+            # "menu_item_id": self.menu_item_id,
+
+        }
+
     def __repr__(self):
         return f'<MenuOptionGroup {self.name}>'
 
@@ -166,6 +177,14 @@ class MenuOption(BaseModel):
 
     # 外键
     option_group_id = db.Column(db.Integer, db.ForeignKey('menu_option_groups.id'), nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "price": self.price,
+            # "option_group_id": self.option_group_id,
+        }
 
     def __repr__(self):
         return f'<MenuOption {self.name}>'

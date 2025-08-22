@@ -22,6 +22,7 @@ class Order(BaseModel):
     STATUS_PAID = 'paid'  # 已付款
     STATUS_PREPARING = 'preparing'  # 准备中
     STATUS_READY = 'ready'  # 准备完成
+
     STATUS_DELIVERING = 'delivering'  # 配送中
     STATUS_COMPLETED = 'completed'  # 已完成
     STATUS_CANCELED = 'canceled'  # 已取消
