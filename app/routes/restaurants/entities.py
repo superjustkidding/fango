@@ -411,21 +411,21 @@ class MenuOptionListEntity:
     def __init__(self, current_user, option_group_id):
         self.current_user = current_user
         self.group = MenuOptionGroup.query.get(option_group_id) if option_group_id else None
-        self.restaurant_id = self.group.menuitem.restaurant_id if self.group else None
+        # self.restaurant_id = self.group.restaurant_id if self.group else None
 
     def get_options(self):
         if not self.group:
             raise BusinessValidationError("Option group not found", ECode.ERROR)
 
-        options = MenuOption.query.filter_by(menu_item_id=self.group.menu_item_id, deleted=False).all()
+        options = MenuOption.query.filter_by(id=self.group.id, deleted=False).all()
         return [o.to_dict() for o in options]
 
     def create_option(self, data):
         if not self.group:
             raise BusinessValidationError("Option group not found", ECode.ERROR)
 
-        if current_user.id != self.restaurant_id:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
+        # if current_user.id != self.restaurant_id:
+        #     raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         option = MenuOption(
             name=data['name'],

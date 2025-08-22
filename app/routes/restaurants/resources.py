@@ -140,19 +140,19 @@ class MenuCategoryResource(Resource):
     endpoint = 'api.MenuCategoryResource'
 
     @restaurant_required
-    def put(self, menucategory_id):
+    def put(self, menu_category_id):
         data = validate_request(MenuCategorySchema, request.get_json())
         entity = MenuCategoryEntity(
             current_user=current_user,
-            menucategory_id=menucategory_id
+            menucategory_id=menu_category_id
         )
         return entity.update_menu_category(data)
 
     @restaurant_required
-    def delete(self, menucategory_id):
+    def delete(self, menu_category_id):
         entity = MenuCategoryEntity(
             current_user=current_user,
-            menucategory_id = menucategory_id
+            menucategory_id=menu_category_id
         )
         return entity.delete_menu_category()
 
@@ -203,19 +203,19 @@ class MenuOptionListResource(Resource):
     endpoint = 'api.MenuOptionResource'
 
     @restaurant_required
-    def get(self, option_group_id):
+    def get(self, group_id):
         entity = MenuOptionListEntity(
             current_user=current_user,
-            option_group_id=option_group_id
+            option_group_id=group_id
         )
         return entity.get_options()
 
     @restaurant_required
-    def post(self, option_group_id):
+    def post(self, group_id):
         data = validate_request(MenuOptionGroupSchema, request.get_json())
         entity = MenuOptionListEntity(
             current_user=current_user,
-            option_group_id=option_group_id
+            option_group_id=group_id
         )
         return entity.create_option(data)
 
