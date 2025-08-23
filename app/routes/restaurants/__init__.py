@@ -7,7 +7,7 @@
 
 from .resources import RestaurantListResource, RestaurantResource, RestaurantLoginResource, \
     MenuCategoryResource, MenuItemResource, MenuItemListResource, MenuCategoryListResource, MenuOptionGroupListResource, \
-    MenuOptionGroupResource, MenuOptionListResource
+    MenuOptionGroupResource, MenuOptionListResource, MenuOptionResource
 
 
 def register_restaurant_routes(api):
@@ -22,6 +22,7 @@ def register_restaurant_routes(api):
     api.add_resource(MenuOptionGroupListResource, '/menuitem/<int:menuitem_id>/option_group')  # 菜品选项组
     api.add_resource(MenuOptionGroupResource, '/option_group/<group_id>')  # 菜品选项组详情
     api.add_resource(MenuOptionListResource, '/option_group/<group_id>/options')  # 菜品选项
+    api.add_resource(MenuOptionResource, '/options/<int:menu_option_id>')
 
     # 返回需要保护的端点列表
     return [

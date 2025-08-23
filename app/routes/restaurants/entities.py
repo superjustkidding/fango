@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from decimal import Decimal
 
 from app import db
 from app.models import Restaurant, MenuItem, MenuCategory, MenuOptionGroup, MenuOption
@@ -157,7 +158,7 @@ class MenuItemListEntity:
         menuitem = MenuItem(
             name=data['name'],
             description=data['description'],
-            price=data['price'],
+            price=Decimal(["price"]),
             image=data.get('image'),
             preparation_time=data['preparation_time'],
             is_available=data.get('is_available', True),
@@ -220,7 +221,7 @@ class MenuItemEntity:
             self.menuitem.description = data["description"]
 
         if "price" in data:
-            self.menuitem.price = data["price"]
+            self.menuitem.price = Decimal(data["price"])
 
         if "image" in data:
             self.menuitem.image = data["image"]
@@ -378,7 +379,7 @@ class MenuOptionGroupEntity:
                 raise BusinessValidationError("Permission denied", ECode.FORBID)
 
             if "name" in data:
-                if MenuOptionGroup.query.filter_by(name=data['name'], restaurant_id=self.restaurant_id).first():
+                if MenuOptionGroup.query.filter_by(name=data['name'], id=self.restaurant_id).first():
                     raise BusinessValidationError('name already exists', ECode.CONFLICT)
                 self.group.name = data["name"]
 
@@ -408,16 +409,16 @@ class MenuOptionGroupEntity:
 
 
 class MenuOptionListEntity:
-    def __init__(self, current_user, option_group_id):
+    def __init__(self, current_user, group_id):
         self.current_user = current_user
-        self.group = MenuOptionGroup.query.get(option_group_id) if option_group_id else None
+        self.group = MenuOptionGroup.query.get(group_id) if group_id else None
         # self.restaurant_id = self.group.restaurant_id if self.group else None
 
     def get_options(self):
         if not self.group:
             raise BusinessValidationError("Option group not found", ECode.ERROR)
 
-        options = MenuOption.query.filter_by(id=self.group.id, deleted=False).all()
+        options = MenuOption.query.filter_by(option_group_id=self.group.id, deleted=False).all()
         return [o.to_dict() for o in options]
 
     def create_option(self, data):
@@ -429,8 +430,9 @@ class MenuOptionListEntity:
 
         option = MenuOption(
             name=data['name'],
-            price=data['price'],
+            price=Decimal(data['price']),
             option_group_id=self.group.id
+
 
         )
         db.session.add(option)
@@ -438,6 +440,36 @@ class MenuOptionListEntity:
         return option.to_dict(), ECode.SUCC
 
 
+class MenuOptionEntity:
+    def __init__(self, current_user, menu_option_id):
+        self.current_user = current_user
+        self.menu_option_id = menu_option_id
+        self.option = MenuOption.query.get(menu_option_id) if menu_option_id else None
+
+    def update_menu_option(self, data):
+        if not self.option:
+            raise BusinessValidationError("Option not found", ECode.ERROR)
+
+        if 'name' in data:
+            if MenuOption.query.filter_by(name=data['name'], id=self.menu_option_id).first():
+                raise BusinessValidationError('name already exists', ECode.CONFLICT)
+            self.option.name = data["name"]
+
+        if 'price' in data:
+            self.option.price = Decimal(data['price'])
+
+
+        db.session.commit()
+        return self.option.to_dict(), ECode.SUCC
+
+
+    def delete_menu_option(self):
+        if not self.option:
+            raise BusinessValidationError("Option not found", ECode.ERROR)
+
+        self.option.deleted = True
+        db.session.commit()
+        return {"message": "deleted successfully"}, ECode.SUCC
 
 
 

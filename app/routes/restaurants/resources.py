@@ -4,9 +4,10 @@ from flask import request
 from flask_restful import Resource
 from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity, MenuItemListEntity, \
     MenuCategoryEntity, MenuItemEntity, MenuCategoryListEntity, MenuOptionGroupListEntity, MenuOptionGroupEntity, \
-    MenuOptionListEntity
+    MenuOptionListEntity, MenuOptionEntity
 from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLoginSchema, UpdateRestaurant, \
-    MenuCategorySchema, UpdateMenuItemSchema, MenuItemSchema, MenuOptionGroupSchema, UpdateMenuOptionGroupSchema
+    MenuCategorySchema, UpdateMenuItemSchema, MenuItemSchema, MenuOptionGroupSchema, UpdateMenuOptionGroupSchema, \
+    MenuOptionSchema
 from app.utils.validation import validate_request
 from app.routes.jwt import current_user, restaurant_required
 
@@ -206,18 +207,41 @@ class MenuOptionListResource(Resource):
     def get(self, group_id):
         entity = MenuOptionListEntity(
             current_user=current_user,
-            option_group_id=group_id
+            group_id=group_id
         )
         return entity.get_options()
 
     @restaurant_required
     def post(self, group_id):
-        data = validate_request(MenuOptionGroupSchema, request.get_json())
+        data = validate_request(MenuOptionSchema, request.get_json())
         entity = MenuOptionListEntity(
             current_user=current_user,
-            option_group_id=group_id
+            group_id=group_id
         )
         return entity.create_option(data)
+
+
+class MenuOptionResource(Resource):
+    endpoint = 'api.MenuOptionResource'
+
+    @restaurant_required
+    def put(self, menu_option_id):
+        data = validate_request(MenuOptionSchema, request.get_json())
+        entity = MenuOptionEntity(
+            current_user=current_user,
+            menu_option_id=menu_option_id
+        )
+        return entity.update_menu_option(data)
+
+    @restaurant_required
+    def delete(self, menu_option_id):
+        entity = MenuOptionEntity(
+            current_user=current_user,
+            menu_option_id=menu_option_id
+        )
+        return entity.delete_menu_option()
+
+
 
 
 

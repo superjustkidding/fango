@@ -69,6 +69,7 @@ class MenuOptionGroupSchema(Schema):
 
 class UpdateMenuOptionGroupSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1))
+    price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
     is_required = fields.Bool(required=True)
     max_selections = fields.Int()
     min_selections = fields.Int()
