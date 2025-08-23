@@ -16,6 +16,19 @@ cd infra
 # 或者使用 Docker Compose 直接启动
 docker-compose up -d
 
+# 服务器开放端口号
+sudo ufw allow 6379
+
+# 开放 RabbitMQ 端口
+sudo ufw allow 5672
+sudo ufw allow 15672
+
+# 开放 MongoDB 端口
+sudo ufw allow 27017
+
+# 开放 Grafana 端口
+sudo ufw allow 3000
+
 
 验证服务
 # 检查基础设施服务状态
