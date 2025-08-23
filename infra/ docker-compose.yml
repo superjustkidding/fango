@@ -1,0 +1,67 @@
+services:
+  # Redis 服务
+  redis:
+    image: redis:7-alpine
+    container_name: fango-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - fango-infra-network
+
+  # RabbitMQ 服务
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: fango-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP 协议端口
+      - "15672:15672" # 管理界面端口
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    networks:
+      - fango-infra-network
+
+  # MongoDB 服务
+  mongodb:
+    image: mongo:6.0
+    container_name: fango-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=fango_logs
+    volumes:
+      - ./mongodb/data:/data/db
+      - ./mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - fango-infra-network
+
+  # Grafana 服务
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: fango-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-mongodb-datasource
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - mongodb
+    networks:
+      - fango-infra-network
+
+networks:
+  fango-infra-network:
+    driver: bridge

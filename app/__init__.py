@@ -1,17 +1,63 @@
 # -*- coding: utf-8 -*-
 
-from flask import Flask, current_app
+import logging
+from flask import Flask, current_app, request
 from flask_sqlalchemy import SQLAlchemy
 from flask.cli import with_appcontext
 from config import load_config
 from flask_migrate import Migrate
 from datetime import timedelta
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
+from extensions.logger import MongoDBHandler
 
 # 初始化扩展
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
+cors = CORS()
+
+
+def setup_logging(app):
+    """配置应用日志"""
+    # 移除默认处理器
+    for handler in app.logger.handlers[:]:
+        app.logger.removeHandler(handler)
+
+    # 设置日志级别
+    log_level = getattr(logging, app.config.get('LOG_LEVEL', 'INFO'))
+    app.logger.setLevel(log_level)
+
+    # 控制台处理器
+    if app.config.get('LOG_TO_CONSOLE', True):
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(log_level)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        console_handler.setFormatter(formatter)
+        app.logger.addHandler(console_handler)
+
+    # MongoDB处理器
+    if app.config.get('LOG_TO_MONGODB', False):
+        try:
+            mongo_handler = MongoDBHandler(
+                app.config['MONGODB_URI'],
+                app.config['MONGODB_DB_NAME'],
+                app.config['MONGODB_LOG_COLLECTION']
+            )
+            mongo_handler.setLevel(log_level)
+            mongo_formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+            mongo_handler.setFormatter(mongo_formatter)
+            app.logger.addHandler(mongo_handler)
+            app.logger.info("MongoDB日志处理器初始化成功")
+        except Exception as e:
+            app.logger.error(f"MongoDB日志处理器初始化失败: {e}")
+
+    # 设置其他库的日志级别
+    logging.getLogger('werkzeug').setLevel(log_level)
 
 
 def create_app():
@@ -25,11 +71,30 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=15)  # 访问令牌1小时过期
-    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)  # 刷新令牌30天过期
+    # 配置JWT
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=15)
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 
     # 初始化JWT
     jwt.init_app(app)
+
+    # 初始化CORS
+    cors.init_app(app, resources={
+        r"/api/*": {
+            "origins": app.config.get('CORS_ORIGINS', ["http://localhost:3000", "http://127.0.0.1:3000"]),
+            "methods": app.config.get('CORS_METHODS', ["GET", "POST", "PUT", "DELETE", "OPTIONS"]),
+            "allow_headers": app.config.get('CORS_ALLOW_HEADERS', ["Content-Type", "Authorization"]),
+            "supports_credentials": app.config.get('CORS_SUPPORTS_CREDENTIALS', True)
+        }
+    })
+
+    # 配置日志
+    setup_logging(app)
+
+    # 记录应用启动信息
+    app.logger.info("Fango应用启动成功")
+    app.logger.info(f"环境: {app.config.get('ENV', 'development')}")
+    app.logger.info(f"数据库: {app.config.get('SQLALCHEMY_DATABASE_URI', '未配置')}")
 
     # 初始化路由
     from .routes import api
@@ -38,6 +103,32 @@ def create_app():
     # 注册错误处理器
     from .utils.validation import register_error_handlers
     register_error_handlers(app)
+
+    # 添加请求日志中间件
+    @app.before_request
+    def log_request_info():
+        app.logger.info(
+            f"请求: {request.method} {request.path}",
+            extra={
+                'ip': request.remote_addr,
+                'user_agent': request.user_agent.string,
+                'user_id': getattr(request, 'user_id', 'anonymous'),
+                'request_id': request.headers.get('X-Request-ID', 'none')
+            }
+        )
+
+    @app.after_request
+    def log_response_info(response):
+        app.logger.info(
+            f"响应: {response.status_code}",
+            extra={
+                'ip': request.remote_addr,
+                'status_code': response.status_code,
+                'user_id': getattr(request, 'user_id', 'anonymous'),
+                'request_id': request.headers.get('X-Request-ID', 'none')
+            }
+        )
+        return response
 
     # 创建超级管理员（如果不存在）
     @app.cli.command("create-admin")
@@ -55,7 +146,7 @@ def create_app():
 
         # 检查是否已存在管理员
         if User.query.filter_by(is_admin=True).first():
-            print("管理员用户已存在")
+            app.logger.info("管理员用户已存在")
             return
 
         # 创建新管理员
@@ -68,7 +159,6 @@ def create_app():
         )
         db.session.add(admin)
         db.session.commit()
-        print(f"管理员 {admin_username} 创建成功")
+        app.logger.info(f"管理员 {admin_username} 创建成功")
 
     return app
-

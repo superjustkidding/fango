@@ -1,0 +1,71 @@
+
+mkdir -p infra/redis/data
+mkdir -p infra/mongodb/data
+mkdir -p infra/grafana/data
+mkdir -p infra/rabbitmq/data
+chmod +x infra/manage-infra.sh
+chmod +x manage-all.sh
+
+# 启动基础服务设置
+# 进入基础设施目录
+cd infra
+
+# 启动所有基础设施服务
+./manage-infra.sh start
+
+# 或者使用 Docker Compose 直接启动
+docker-compose up -d
+
+
+验证服务
+# 检查基础设施服务状态
+cd infra
+./manage-infra.sh status
+
+# 测试日志系统
+curl http://localhost:5000/api/test-log
+
+# 访问 Grafana
+# 打开浏览器访问 http://localhost:3000
+# 用户名: admin, 密码: admin123
+
+# 访问 RabbitMQ 管理界面
+# 打开浏览器访问 http://localhost:15672
+# 用户名: admin, 密码: admin123
+
+
+
+# 设置开机启动
+# 创建 Systemd 服务文件
+sudo tee /etc/systemd/system/fango-infra.service << 'EOF'
+[Unit]
+Description=Fango Infrastructure Services
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/path/to/your/fango-project/infra
+ExecStart=/usr/local/bin/docker-compose up -d
+ExecStop=/usr/local/bin/docker-compose down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 更新工作目录路径（请替换为您的实际路径）
+sudo sed -i "s|/path/to/your/fango-project|$(pwd)|g" /etc/systemd/system/fango-infra.service
+
+# 重新加载 Systemd 配置
+sudo systemctl daemon-reload
+
+# 启用开机自启动
+sudo systemctl enable fango-infra.service
+
+# 启动服务
+sudo systemctl start fango-infra.service
+
+# 检查服务状态
+sudo systemctl status fango-infra.service
