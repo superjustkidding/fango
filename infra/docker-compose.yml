@@ -48,14 +48,12 @@ services:
   grafana:
     image: grafana/grafana-oss:latest
     container_name: fango-grafana
-    user: "0"  # 使用 root 用户运行，避免权限问题
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_INSTALL_PLUGINS=grafana-mongodb-datasource
-      - GF_PATHS_DATA=/var/lib/grafana
+      - GF_INSTALL_PLUGINS=mongo-datasource  # 使用社区版插件
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
