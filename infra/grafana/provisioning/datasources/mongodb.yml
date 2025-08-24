@@ -4,11 +4,17 @@ datasources:
   - name: MongoDB
     type: grafana-mongodb-datasource
     access: proxy
-    url: mongodb://mongodb:27017
+    url: mongodb:27017  # 使用 Docker 容器名称
     database: fango_logs
     jsonData:
       authType: none
       tlsAuth: false
       tlsAuthWithCACert: false
       tlsSkipVerify: true
-    editable: true
+      # 连接参数
+      connectionOptions:
+        maxPoolSize: 10
+        minPoolSize: 1
+      # 查询超时
+      queryTimeout: 60
+    editable: false
