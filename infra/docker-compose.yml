@@ -44,6 +44,35 @@ services:
     networks:
       - fango-infra-network
 
+  # MongoDB Exporter
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.39
+    container_name: fango-mongodb-exporter
+    restart: unless-stopped
+    ports:
+      - "9216:9216"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/fango_logs
+    networks:
+      - fango-infra-network
+    depends_on:
+      - mongodb
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fango-prometheus
+    restart: unless-stopped
+    ports:
+      - "9091:9090"  # 外部访问端口改为9091，内部端口保持9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/data:/prometheus
+    networks:
+      - fango-infra-network
+    depends_on:
+      - mongodb-exporter
+
   # Grafana 服务
   grafana:
     image: grafana/grafana-oss:latest
@@ -53,13 +82,14 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
-      # 移除自动安装插件的配置，避免安装不存在的插件
-      # - GF_INSTALL_PLUGINS=grafana-mongodb-datasource
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     networks:
       - fango-infra-network
+    depends_on:
+      - prometheus
 
 networks:
   fango-infra-network:
