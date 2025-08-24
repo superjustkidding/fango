@@ -1,24 +1,13 @@
 apiVersion: 1
 
 datasources:
-  - name: MongoDB
-    type: mongo-datasource  # 使用社区版插件类型
+  - name: Prometheus
+    type: prometheus
     access: proxy
-    url: mongodb://mongodb:27017  # 使用容器名称
-    database: fango_logs
+    url: http://prometheus:9090
+    isDefault: true
     jsonData:
-      # 社区版插件的配置参数
-      authType: none
-      tlsAuth: false
-      tlsAuthWithCACert: false
-      tlsSkipVerify: true
-      # 连接超时设置
-      queryTimeout: 60
-      # MongoDB 连接选项
-      connectionOptions:
-        maxPoolSize: 10
-        minPoolSize: 1
-    # 如果 MongoDB 需要认证（通常不需要）
-    # secureJsonData:
-    #   password: "your_password"
+      httpMethod: GET
+      timeInterval: "15s"
+    version: 1
     editable: false
