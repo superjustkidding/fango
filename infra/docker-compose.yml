@@ -53,12 +53,11 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_INSTALL_PLUGINS=mongo-datasource  # 使用社区版插件
+      # 移除自动安装插件的配置，避免安装不存在的插件
+      # - GF_INSTALL_PLUGINS=grafana-mongodb-datasource
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
-    depends_on:
-      - mongodb
     networks:
       - fango-infra-network
 
