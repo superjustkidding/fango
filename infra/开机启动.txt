@@ -29,6 +29,12 @@ sudo ufw allow 27017
 # 开放 Grafana 端口
 sudo ufw allow 3000
 
+# 如果防火墙启用，确保 3000 端口是开放的
+sudo ufw allow 3000/tcp
+
+# 重新加载防火墙
+sudo ufw reload
+
 
 验证服务
 # 检查基础设施服务状态

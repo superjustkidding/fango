@@ -34,12 +34,22 @@ class MongoDBHandler(logging.Handler):
             self.collection.create_index([("module", 1)])
         except ConnectionFailure as e:
             print(f"MongoDB连接失败: {e}")
+            self.collection = None
 
     def emit(self, record):
-        if not self.collection:
+        # 修复：使用 is None 而不是真值测试
+        if self.collection is None:
             self.connect()
+            # 如果连接仍然失败，直接返回
+            if self.collection is None:
+                return
 
         try:
+            # 在调用 format 之前设置 exc_info，这样 format 方法会自动处理异常
+            if record.exc_info:
+                # 确保异常信息被格式化到消息中
+                record.exc_text = self.format(record)
+
             log_entry = {
                 'timestamp': datetime.now(),
                 'level': record.levelname,
@@ -60,8 +70,20 @@ class MongoDBHandler(logging.Handler):
             if hasattr(record, 'request_id'):
                 log_entry['request_id'] = record.request_id
 
+            # 如果存在异常信息，单独存储
             if record.exc_info:
-                log_entry['exc_info'] = self.formatException(record.exc_info)
+                # 使用简单的方法获取异常信息
+                try:
+                    # 获取异常类型和值
+                    exc_type, exc_value, exc_traceback = record.exc_info
+                    log_entry['exception'] = {
+                        'type': str(exc_type.__name__),
+                        'message': str(exc_value),
+                        'traceback': self.formatException(record.exc_info) if hasattr(self, 'formatException') else str(
+                            exc_value)
+                    }
+                except:
+                    log_entry['exception'] = "无法解析异常信息"
 
             self.collection.insert_one(log_entry)
 

@@ -54,7 +54,8 @@ def setup_logging(app):
             app.logger.addHandler(mongo_handler)
             app.logger.info("MongoDB日志处理器初始化成功")
         except Exception as e:
-            app.logger.error(f"MongoDB日志处理器初始化失败: {e}")
+            # 使用简单的 print 而不是 app.logger.error 避免循环依赖
+            print(f"MongoDB日志处理器初始化失败: {e}")
 
     # 设置其他库的日志级别
     logging.getLogger('werkzeug').setLevel(log_level)
