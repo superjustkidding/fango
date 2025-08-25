@@ -60,7 +60,7 @@ services:
 
   # Prometheus
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.47.0
     container_name: fango-prometheus
     ports:
       - "9091:9090"
@@ -73,7 +73,6 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.enable-lifecycle'
-      - '--query-log-file='  # 改为空字符串来禁用查询日志
     user: "65534:65534"
     restart: unless-stopped
     networks:
