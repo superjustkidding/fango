@@ -63,7 +63,7 @@ services:
     image: prom/prometheus:latest
     container_name: fango-prometheus
     ports:
-      - "9090:9090"
+      - "9091:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus/data:/prometheus  # 确保这个映射正确
