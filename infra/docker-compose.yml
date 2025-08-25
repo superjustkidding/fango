@@ -73,7 +73,7 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.enable-lifecycle'
-      - '--query-log-file=/tmp/queries.active'  # 使用容器内临时目录
+      - '--query-log-file='  # 改为空字符串来禁用查询日志
     user: "65534:65534"
     restart: unless-stopped
     networks:
