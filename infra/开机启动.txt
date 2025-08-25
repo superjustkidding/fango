@@ -3,6 +3,9 @@ mkdir -p infra/redis/data
 mkdir -p infra/mongodb/data
 mkdir -p infra/grafana/data
 mkdir -p infra/rabbitmq/data
+mkdir -p infra/prometheus/data
+
+sudo chmod -R 755 infra/prometheus
 chmod +x infra/manage-infra.sh
 chmod +x manage-all.sh
 
