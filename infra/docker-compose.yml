@@ -66,14 +66,15 @@ services:
       - "9091:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus/data:/prometheus  # 确保这个映射正确
+      - ./prometheus/data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.enable-lifecycle'
-    user: "65534:65534"  # 添加这一行，以 nobody 用户运行
+      - '--query-log-file=/tmp/queries.active'  # 使用容器内临时目录
+    user: "65534:65534"
     restart: unless-stopped
     networks:
       - fango-infra-network
