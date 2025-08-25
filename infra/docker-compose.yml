@@ -75,6 +75,8 @@ services:
       - '--web.enable-lifecycle'
     user: "65534:65534"  # 添加这一行，以 nobody 用户运行
     restart: unless-stopped
+    networks:
+      - fango-infra-network
 
   # Grafana 服务
   grafana:
