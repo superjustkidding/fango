@@ -4,10 +4,57 @@ mkdir -p infra/mongodb/data
 mkdir -p infra/grafana/data
 mkdir -p infra/rabbitmq/data
 mkdir -p infra/prometheus/data
+mkdir -p infra/loki/data
+mkdir -p infra/prometheus/data
 
-sudo chmod -R 755 infra/prometheus
+
+sudo chown -R 65534:65534 prometheus/data/
+sudo chmod -R 755 prometheus/data/
+
+# 同时设置其他目录权限（预防性）
+sudo chown -R 999:999 mongodb/data/        # MongoDB 通常用 999
+sudo chown -R 472:472 grafana/data/        # Grafana 通常用 472
+sudo chown -R 1001:1001 redis/data/        # Redis 通常用 1001
+sudo chown -R 999:999 rabbitmq/data/       # RabbitMQ 通常用 999
+
+# 设置目录权限
+sudo chmod -R 755 mongodb/data/
+sudo chmod -Rfana/data/
+sudo chmod -R 755 redis/data/
+sudo chmod -R 755 rabbitmq/data/
+
+
 chmod +x infra/manage-infra.sh
 chmod +x manage-all.sh
+
+
+服务结构
+fango-infra/
+├── docker-compose.yml
+├── mongodb/
+│   ├── data/
+│   └── init-mongo.js
+├── redis/
+│   ├── data/
+│   └── redis.conf
+├── rabbitmq/
+│   └── data/
+├── prometheus/
+│   ├── prometheus.yml
+│   ├── alert.rules.yml
+│   └── data/
+├── loki/
+│   ├── config/
+│   │   └── loki-config.yaml
+│   └── data/
+├── promtail/
+│   └── config/
+│       └── promtail-config.yaml
+└── grafana/
+    ├── data/
+    ├── provisioning/
+    └── dashboards/
+
 
 # 启动基础服务设置
 # 进入基础设施目录

@@ -23,7 +23,7 @@ class UserListResource(Resource):
             raise BusinessValidationError("Permission denied", 403)
 
         entity = UserEntity(current_user=current_user)
-        logger.info("用户查询成功", entity.get_users(**request.args))
+        logger.info(entity.get_users(**request.args))
         return entity.get_users(**request.args)
 
     @admin_required

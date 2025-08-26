@@ -67,36 +67,78 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus/data:/prometheus
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.enable-lifecycle'
+      - '--web.external-url=http://localhost:9091'
     user: "65534:65534"
     restart: unless-stopped
     networks:
       - fango-infra-network
+    depends_on:
+      - mongodb-exporter
+
+  # Loki - 日志聚合系统
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: fango-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/config:/etc/loki
+      - ./loki/data:/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    networks:
+      - fango-infra-network
+
+  # Promtail - 日志收集代理
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: fango-promtail
+    restart: unless-stopped
+    volumes:
+      - ./promtail/config:/etc/promtail
+      - ./mongodb/data:/var/lib/mongodb/data:ro  # 挂载MongoDB数据目录
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro  # 收集Docker容器日志
+      - /var/run/docker.sock:/var/run/docker.sock  # 访问Docker API
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks:
+      - fango-infra-network
+    depends_on:
+      - loki
+      - mongodb
 
   # Grafana 服务
   grafana:
-    image: grafana/grafana-oss:latest
+    image: grafana/grafana-oss:9.5.6
     container_name: fango-grafana
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
-      # 移除有问题的插件配置
-      # - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,marcusolsson-json-datasource
+      - GF_FEATURE_TOGGLES_ENABLE=publicDashboards
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     networks:
       - fango-infra-network
     depends_on:
       - prometheus
+      - loki
 
 networks:
   fango-infra-network:
     driver: bridge
+
+volumes:
+  loki_data:
+  grafana_data:
+  prometheus_data:

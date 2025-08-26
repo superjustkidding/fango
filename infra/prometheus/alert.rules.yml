@@ -1,0 +1,20 @@
+groups:
+- name: fango-alerts
+  rules:
+  - alert: MongoDBDown
+    expr: mongodb_up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "MongoDB is down"
+      description: "MongoDB instance has been down for more than 1 minute"
+
+  - alert: HighMongoDBConnections
+    expr: mongodb_connections{state="current"} > 500
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High MongoDB connection count"
+      description: "MongoDB has more than 500 current connections for 5 minutes"
