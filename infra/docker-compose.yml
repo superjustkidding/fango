@@ -119,8 +119,7 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
-      # 移除有问题的插件，或使用更稳定的插件
-      - GF_INSTALL_PLUGINS=marcusolsson-json-datasource
+      # 完全移除 GF_INSTALL_PLUGINS 环境变量
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
