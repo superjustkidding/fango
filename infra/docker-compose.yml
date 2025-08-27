@@ -74,8 +74,7 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.enable-lifecycle'
-      - '--web.external-url=http://localhost:9091'
-    user: "65534:65534"
+    user: "65534:65534"  # Prometheus 通常使用 UID 65534 (nobody)
     restart: unless-stopped
     networks:
       - fango-infra-network
@@ -103,15 +102,13 @@ services:
     restart: unless-stopped
     volumes:
       - ./promtail/config:/etc/promtail
-      - ./mongodb/data:/var/lib/mongodb/data:ro  # 挂载MongoDB数据目录
+      - /var/log:/var/log:ro  # 收集系统日志
       - /var/lib/docker/containers:/var/lib/docker/containers:ro  # 收集Docker容器日志
-      - /var/run/docker.sock:/var/run/docker.sock  # 访问Docker API
     command: -config.file=/etc/promtail/promtail-config.yaml
     networks:
       - fango-infra-network
     depends_on:
       - loki
-      - mongodb
 
   # Grafana 服务
   grafana:
@@ -122,8 +119,7 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel,marcusolsson-json-datasource
-      - GF_FEATURE_TOGGLES_ENABLE=publicDashboards
+      # 完全移除 GF_INSTALL_PLUGINS 环境变量
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
@@ -137,8 +133,3 @@ services:
 networks:
   fango-infra-network:
     driver: bridge
-
-volumes:
-  loki_data:
-  grafana_data:
-  prometheus_data:
