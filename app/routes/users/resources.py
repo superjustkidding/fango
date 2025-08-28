@@ -13,7 +13,6 @@ from app.utils.validation import validate_request, BusinessValidationError
 from app.routes.jwt import current_user, admin_required, user_required
 from app.routes.logger import logger
 
-
 class UserListResource(Resource):
     endpoint = 'api.UserListResource'
 

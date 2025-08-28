@@ -69,7 +69,6 @@ class MenuOptionGroupSchema(Schema):
 
 class UpdateMenuOptionGroupSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1))
-    price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
     is_required = fields.Bool(required=True)
     max_selections = fields.Int()
     min_selections = fields.Int()
@@ -79,7 +78,25 @@ class MenuOptionSchema(Schema):
     price = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
 
 
+class DeliveryZoneSchema(Schema):
+    name = fields.Str(required=True, validate=validate.Length(min=1))
+    delivery_fee = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
+    min_order_amount = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
+    delivery_time = fields.Int()
 
+
+class OperatingHoursSchema(Schema):
+    day_of_week = fields.Int(required=True, validate=lambda x: 0 <= x <= 6)
+    open_time = fields.Time(required=True)
+    close_time = fields.Time(required=True)
+    is_closed = fields.Bool(missing=False)
+
+
+class UpdateOperatingHoursSchema(Schema):
+    day_of_week = fields.Int(validate=lambda x: 0 <= x <= 6)
+    open_time = fields.Time()
+    close_time = fields.Time()
+    is_closed = fields.Bool()
 
 
 
