@@ -1,0 +1,140 @@
+{
+  "title": "MongoDB Logs Dashboard",
+  "tags": ["mongodb", "logs"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Log Level Distribution",
+      "type": "piechart",
+      "datasource": "MongoDB",
+      "targets": [
+        {
+          "queryType": "aggregate",
+          "database": "fango_logs",
+          "collection": "app_logs",
+          "aggregate": [
+            {
+              "$group": {
+                "_id": "$level",
+                "count": { "$sum": 1 }
+              }
+            }
+          ]
+        }
+      ],
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "title": "Logs by Module",
+      "type": "bargauge",
+      "datasource": "MongoDB",
+      "targets": [
+        {
+          "queryType": "aggregate",
+          "database": "fango_logs",
+          "collection": "app_logs",
+          "aggregate": [
+            {
+              "$group": {
+                "_id": "$module",
+                "count": { "$sum": 1 }
+              }
+            }
+          ]
+        }
+      ],
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 0 }
+    },
+    {
+      "id": 3,
+      "title": "Recent Logs",
+      "type": "table",
+      "datasource": "MongoDB",
+      "targets": [
+        {
+          "queryType": "aggregate",
+          "database": "fango_logs",
+          "collection": "app_logs",
+          "aggregate": [
+            {
+              "$sort": { "timestamp": -1 }
+            },
+            {
+              "$limit": 20
+            },
+            {
+              "$project": {
+                "timestamp": 1,
+                "level": 1,
+                "module": 1,
+                "user_id": 1,
+                "message": 1
+              }
+            }
+          ]
+        }
+      ],
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 }
+    },
+    {
+      "id": 4,
+      "title": "Logs Timeline",
+      "type": "graph",
+      "datasource": "MongoDB",
+      "targets": [
+        {
+          "queryType": "aggregate",
+          "database": "fango_logs",
+          "collection": "app_logs",
+          "aggregate": [
+            {
+              "$group": {
+                "_id": {
+                  "level": "$level",
+                  "hour": { "$hour": "$timestamp" }
+                },
+                "count": { "$sum": 1 }
+              }
+            },
+            {
+              "$sort": { "_id.hour": 1 }
+            }
+          ]
+        }
+      ],
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 }
+    }
+  ],
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "level",
+        "type": "query",
+        "datasource": "MongoDB",
+        "query": "db.app_logs.distinct('level')",
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true
+      },
+      {
+        "name": "module",
+        "type": "query",
+        "datasource": "MongoDB",
+        "query": "db.app_logs.distinct('module')",
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true
+      }
+    ]
+  },
+  "refresh": "10s"
+}

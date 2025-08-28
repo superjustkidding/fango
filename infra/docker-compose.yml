@@ -112,14 +112,15 @@ services:
 
   # Grafana 服务
   grafana:
-    image: grafana/grafana-oss:9.5.6
+    image: grafana/grafana-enterprise:9.5.6  # 企业版支持更多插件
     container_name: fango-grafana
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
-      # 完全移除 GF_INSTALL_PLUGINS 环境变量
+      - GF_INSTALL_PLUGINS=grafana-mongodb-datasource  # 安装 MongoDB 数据源插件
+      - GF_DATASOURCE_MONGODB_ENABLED=true
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
@@ -128,7 +129,8 @@ services:
       - fango-infra-network
     depends_on:
       - prometheus
-      - loki
+      - mongodb  # 添加对 MongoDB 的直接依赖
+
 
 networks:
   fango-infra-network:
