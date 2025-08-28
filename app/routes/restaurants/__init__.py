@@ -7,7 +7,8 @@
 
 from .resources import RestaurantListResource, RestaurantResource, RestaurantLoginResource, \
     MenuCategoryResource, MenuItemResource, MenuItemListResource, MenuCategoryListResource, MenuOptionGroupListResource, \
-    MenuOptionGroupResource, MenuOptionListResource, MenuOptionResource
+    MenuOptionGroupResource, MenuOptionListResource, MenuOptionResource, DeliveryZoneListResource, DeliveryZoneResource, \
+    OperatingHoursListResource, OperatingHoursResource
 
 
 def register_restaurant_routes(api):
@@ -22,7 +23,11 @@ def register_restaurant_routes(api):
     api.add_resource(MenuOptionGroupListResource, '/menuitem/<int:menuitem_id>/option_group')  # 菜品选项组
     api.add_resource(MenuOptionGroupResource, '/option_group/<group_id>')  # 菜品选项组详情
     api.add_resource(MenuOptionListResource, '/option_group/<group_id>/options')  # 菜品选项
-    api.add_resource(MenuOptionResource, '/options/<int:menu_option_id>')
+    api.add_resource(MenuOptionResource, '/options/<int:menu_option_id>')  # 菜品选项详情
+    api.add_resource(DeliveryZoneListResource, '/restaurants/<int:restaurant_id>/delivery_zone')  # 配送区域
+    api.add_resource(DeliveryZoneResource, '/delivery_zone/<int:delivery_zone_id>')  # 配送区域详情
+    api.add_resource(OperatingHoursListResource, '/restaurants/<int:restaurant_id>/operating_hours')  # 营业时间
+    api.add_resource(OperatingHoursResource, '/operating_hours/<int:operating_hours_id>')  # 营业时间详情
 
     # 返回需要保护的端点列表
     return [
@@ -35,4 +40,8 @@ def register_restaurant_routes(api):
         'api.MenuCategoryResource',
         'api.MenuOptionGroupListResource',
         'api.MenuOptionGroupResource',
+        'api.DeliveryZoneListResource',
+        'api.DeliveryZoneResource',
+        'api.OperatingHoursListResource',
+        'api.OperatingHoursResource',
     ]

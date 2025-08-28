@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 from decimal import Decimal
 
 from app import db
-from app.models import Restaurant, MenuItem, MenuCategory, MenuOptionGroup, MenuOption
+from app.models import Restaurant, MenuItem, MenuCategory, MenuOptionGroup, MenuOption, DeliveryZone, OperatingHours
 from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
 
@@ -14,19 +15,17 @@ class RestaurantEntity:
     def __init__(self, current_user=None):
         self.current_user = current_user
 
-    """获取餐馆列表"""
     def get_restaurants(self, **data):
+        query = Restaurant.query.filter_by(deleted=False)  # 添加已删除过滤
 
-        query = Restaurant.query
+        if 'name' in data and data['name']:
+            query = query.filter(Restaurant.name.ilike(f"%{data['name']}%"))  # 改为模糊查询
 
-        if 'name' in data:
-            query = query.filter(Restaurant.name == data['name'])
-
-        if 'address' in data:
-            query = query.filter(Restaurant.address == data['address'])
+        if 'address' in data and data['address']:
+            query = query.filter(Restaurant.address.ilike(f"%{data['address']}%"))  # 改为模糊查询
 
         restaurants = query.all()
-        return restaurants.to_dict(), ECode.SUCC
+        return [restaurant.to_dict() for restaurant in restaurants], ECode.SUCC  # 修复to_dict()调用
 
     """创建餐馆"""
     def create_restaurant(self, data):
@@ -77,6 +76,9 @@ class RestaurantItemEntity:
 
     """获取单个餐馆"""
     def get_restaurant(self):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.NOTFOUND)
+
         if not self.restaurant_id and not self.current_user.is_admin:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
@@ -85,7 +87,10 @@ class RestaurantItemEntity:
     """餐馆更新"""
     def update_restaurant(self, data):
 
-        if not self.restaurant_id and not self.current_user.is_admin:
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant does not currently exist", ECode.FORBID)
+
+        if not self.current_user.is_admin and self.current_user.id != self.restaurant.id:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         if 'name' in data:
@@ -116,9 +121,7 @@ class RestaurantItemEntity:
 
         return self.restaurant.to_dict(), ECode.SUCC
 
-    def delete_resaurant(self):
-        if not self.restaurant_id and not self.current_user.is_admin:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
+    def delete_restaurant(self):
 
         if not self.restaurant:
             raise BusinessValidationError("Restaurant does not exist", ECode.NOTFOUND)
@@ -132,19 +135,13 @@ class RestaurantItemEntity:
 
 
 class MenuItemListEntity:
-    def __init__(self, current_user, restaurant_id, menuitem_id = None):
+    def __init__(self, current_user, restaurant_id):
         self.current_user = current_user
         self.restaurant_id = restaurant_id
-        if menuitem_id is not None:
-            self.menuitem = MenuItem.query.get(menuitem_id)
-        else:
-            self.menuitem = None
+        self.restaurant = Restaurant.query.get(restaurant_id)
 
     """ 菜品创建 """
     def create_menuitem(self, data):
-        # 权限校验
-        if self.current_user.id != self.restaurant_id:
-            raise BusinessValidationError("Permission denied", ECode.ERROR)
 
         # 避免重名
         if MenuItem.query.filter_by(name=data['name'], restaurant_id=self.restaurant_id).first():
@@ -158,7 +155,7 @@ class MenuItemListEntity:
         menuitem = MenuItem(
             name=data['name'],
             description=data['description'],
-            price=Decimal(["price"]),
+            price=Decimal(data["price"]),
             image=data.get('image'),
             preparation_time=data['preparation_time'],
             is_available=data.get('is_available', True),
@@ -242,10 +239,6 @@ class MenuItemEntity:
         if not self.menuitem:
             raise BusinessValidationError("Menu item not found", ECode.ERROR)
 
-            # 权限校验：当前用户只能删除自己餐厅的菜品
-        if self.restaurant.id != self.current_user.id:
-            raise BusinessValidationError("Permission denied", ECode.ERROR)
-
             # 逻辑删除
         self.menuitem.deleted = True
 
@@ -262,9 +255,6 @@ class MenuCategoryListEntity:
     """菜单分类创建"""
     def create_menu_category(self, data):
 
-        if  self.current_user.id != self.restaurant_id:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
-
         if MenuCategory.query.filter_by(name=data['name'], restaurant_id = self.restaurant_id).first():
             raise BusinessValidationError('name already exists', ECode.CONFLICT)
 
@@ -280,8 +270,8 @@ class MenuCategoryListEntity:
 
     """菜单分类获取"""
     def get_menu_category(self, restaurant_id):
-        categorys = MenuCategory.query.filter_by(restaurant_id=restaurant_id, deleted=False).all()
-        return [cate.to_dict() for cate in categorys], ECode.SUCC
+        category = MenuCategory.query.filter_by(restaurant_id=restaurant_id, deleted=False).all()
+        return [cate.to_dict() for cate in category], ECode.SUCC
 
 
 class MenuCategoryEntity:
@@ -293,14 +283,14 @@ class MenuCategoryEntity:
 
     """菜单分类更新"""
     def update_menu_category(self, data):
-        if not self.menucategory :
+        if not self.menucategory:
             raise BusinessValidationError("Category not found", ECode.ERROR)
 
         if  not self.restaurant:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         if 'name' in data:
-            if MenuCategory.query.filter_by(name=data['name'], restaurant_id = self.restaurant_id).first():
+            if MenuCategory.query.filter_by(name=data['name'], restaurant_id=self.restaurant_id).first():
                 raise BusinessValidationError('name already exists', ECode.CONFLICT)
             self.menucategory.name = data['name']
 
@@ -318,9 +308,6 @@ class MenuCategoryEntity:
 
         if not self.menucategory:
             raise BusinessValidationError("Menu category not found", ECode.ERROR)
-
-        if  not self.current_user.id != self.restaurant_id:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         self.menucategory.deleted = True
         db.session.commit()
@@ -347,9 +334,6 @@ class MenuOptionGroupListEntity:
          if not self.menuitem:
              raise BusinessValidationError("Menu item not found", ECode.ERROR)
 
-         if self.current_user.id != self.restaurant_id:
-             raise BusinessValidationError("Permission denied", ECode.FORBID)
-
          group = MenuOptionGroup(
              name=data['name'],
              is_required=data.get("is_required", False),
@@ -375,11 +359,12 @@ class MenuOptionGroupEntity:
             if not self.group:
                 raise BusinessValidationError("Option group not found", ECode.ERROR)
 
-            if self.current_user.id != self.restaurant_id:
-                raise BusinessValidationError("Permission denied", ECode.FORBID)
-
             if "name" in data:
-                if MenuOptionGroup.query.filter_by(name=data['name'], id=self.restaurant_id).first():
+                existing = MenuOptionGroup.query.filter_by(
+                    name=data['name'],
+                    menu_item_id=self.group.menu_item_id
+                ).first()
+                if existing and existing.id != self.group.id:
                     raise BusinessValidationError('name already exists', ECode.CONFLICT)
                 self.group.name = data["name"]
 
@@ -400,9 +385,6 @@ class MenuOptionGroupEntity:
             if not self.group:
                 raise BusinessValidationError("Option group not found", ECode.ERROR)
 
-            if self.current_user.id != self.restaurant_id:
-                raise BusinessValidationError("Permission denied", ECode.FORBID)
-
             self.group.deleted = True
             db.session.commit()
             return {"message": "deleted successfully"}, ECode.SUCC
@@ -419,7 +401,7 @@ class MenuOptionListEntity:
             raise BusinessValidationError("Option group not found", ECode.ERROR)
 
         options = MenuOption.query.filter_by(option_group_id=self.group.id, deleted=False).all()
-        return [o.to_dict() for o in options]
+        return [o.to_dict() for o in options], ECode.SUCC
 
     def create_option(self, data):
         if not self.group:
@@ -451,17 +433,18 @@ class MenuOptionEntity:
             raise BusinessValidationError("Option not found", ECode.ERROR)
 
         if 'name' in data:
-            if MenuOption.query.filter_by(name=data['name'], id=self.menu_option_id).first():
+            existing = MenuOption.query.filter_by(
+                name=data['name'],
+                option_group_id=self.option.option_group_id
+            ).first()
+            if existing and existing.id != self.option.id:
                 raise BusinessValidationError('name already exists', ECode.CONFLICT)
             self.option.name = data["name"]
 
         if 'price' in data:
             self.option.price = Decimal(data['price'])
-
-
         db.session.commit()
         return self.option.to_dict(), ECode.SUCC
-
 
     def delete_menu_option(self):
         if not self.option:
@@ -470,6 +453,150 @@ class MenuOptionEntity:
         self.option.deleted = True
         db.session.commit()
         return {"message": "deleted successfully"}, ECode.SUCC
+
+
+class DeliveryZoneListEntity:
+    def __init__(self, current_user, restaurant_id):
+        self.current_user = current_user
+        self.restaurant_id = restaurant_id
+        self.restaurant = Restaurant.query.get(restaurant_id)
+
+    def get_delivery_zones(self):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+        delivery_zones =DeliveryZone.query.filter_by(restaurant_id=self.restaurant.id).all()
+        return [d.to_dict() for d in delivery_zones], ECode.SUCC
+
+    def create_delivery_zone(self, data):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+        delivery_zone = DeliveryZone(
+            name=data['name'],
+            delivery_fee=Decimal(data['delivery_fee']),
+            min_order_amount=Decimal(data['min_order_amount']),
+            delivery_time=data['delivery_time'],
+            restaurant_id=self.restaurant.id,
+        )
+        db.session.add(delivery_zone)
+        db.session.commit()
+        return delivery_zone.to_dict(), ECode.SUCC
+
+
+class DeliveryZoneEntity:
+    def __init__(self, current_user, delivery_zone_id):
+        self.current_user = current_user
+        self.delivery_zone = DeliveryZone.query.get(delivery_zone_id)
+        self.restaurant_id = self.delivery_zone.restaurant_id if self.delivery_zone else None
+        self.restaurant = Restaurant.query.get(self.restaurant_id) if self.restaurant_id else None
+
+    def update_delivery_zone(self, data):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+        if "name" in data:
+            # 去掉前后空格，统一大小写，避免误判
+            new_name = data["name"].strip()
+
+            existing = DeliveryZone.query.filter(
+                DeliveryZone.restaurant_id == self.restaurant.id,
+                DeliveryZone.name == new_name,
+                DeliveryZone.id != self.delivery_zone.id
+            ).first()
+
+            if existing:
+                raise BusinessValidationError("Name already exists", ECode.CONFLICT)
+
+            self.delivery_zone.name = new_name
+
+        if 'delivery_fee' in data:
+            self.delivery_zone.delivery_fee = Decimal(data['delivery_fee'])
+
+        if 'min_order_amount' in data:
+            self.delivery_zone.min_order_amount = Decimal(data['min_order_amount'])
+
+        if 'delivery_time' in data:
+            self.delivery_zone.delivery_time = data['delivery_time']
+
+        db.session.commit()
+        return self.delivery_zone.to_dict(), ECode.SUCC
+
+    def delete_delivery_zone(self):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+
+        self.delivery_zone.deleted = True
+        db.session.commit()
+        return {"message": "deleted successfully"}, ECode.SUCC
+
+
+
+class OperatingHoursListEntity:
+    def __init__(self, current_user, restaurant_id):
+        self.current_user = current_user
+        self.restaurant_id = restaurant_id
+        self.restaurant = Restaurant.query.get(restaurant_id)
+
+    def get_operating_hour(self):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+        operating_hour = OperatingHours.query.filter_by(restaurant_id=self.restaurant.id)
+        return [o.to_dict() for o in operating_hour], ECode.SUCC
+
+    def create_operating_hour(self, data):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+        operating_hour = OperatingHours(
+            day_of_week=data['day_of_week'],
+            open_time=data['open_time'],
+            close_time=data['close_time'],
+            is_closed=data['is_closed'],
+            restaurant_id=self.restaurant.id,
+        )
+        db.session.add(operating_hour)
+        db.session.commit()
+        return operating_hour.to_dict(), ECode.SUCC
+
+
+class OperatingHoursEntity:
+    def __init__(self, current_user, operating_hours_id):
+        self.current_user = current_user
+        self.operating_hour = OperatingHours.query.get(operating_hours_id)
+        self.restaurant_id = self.operating_hour.restaurant_id if self.operating_hour else None
+        self.restaurant = Restaurant.query.get(self.restaurant_id) if self.restaurant_id else None
+
+    def update_operating_hour(self, data):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+            # 更新 day_of_week
+        if "day_of_week" in data:
+            self.operating_hour.day_of_week = data["day_of_week"]
+
+            # 更新 open_time
+        if "open_time" in data:
+            self.operating_hour.open_time = data["open_time"]
+
+            # 更新 close_time
+        if "close_time" in data:
+            self.operating_hour.close_time = data["close_time"]
+
+            # 校验时间范围
+        if (
+                self.operating_hour.open_time
+                and self.operating_hour.close_time
+                and self.operating_hour.open_time >= self.operating_hour.close_time
+            ):
+                raise BusinessValidationError("Open time must be earlier than close time", ECode.ERROR)
+
+        db.session.commit()
+        return self.operating_hour.to_dict(), ECode.SUCC
+
+    def delete_operating_hour(self):
+        if not self.operating_hour:
+            raise BusinessValidationError("Operating hours not found", ECode.NOTFOUND)
+
+        self.operating_hour.deleted = True
+        db.session.commit()
+        return {"message": "Operating hours deleted successfully"}, ECode.SUCC
+
 
 
 

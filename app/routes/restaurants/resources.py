@@ -4,10 +4,11 @@ from flask import request
 from flask_restful import Resource
 from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity, MenuItemListEntity, \
     MenuCategoryEntity, MenuItemEntity, MenuCategoryListEntity, MenuOptionGroupListEntity, MenuOptionGroupEntity, \
-    MenuOptionListEntity, MenuOptionEntity
+    MenuOptionListEntity, MenuOptionEntity, DeliveryZoneListEntity, DeliveryZoneEntity, OperatingHoursListEntity, \
+    OperatingHoursEntity
 from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLoginSchema, UpdateRestaurant, \
     MenuCategorySchema, UpdateMenuItemSchema, MenuItemSchema, MenuOptionGroupSchema, UpdateMenuOptionGroupSchema, \
-    MenuOptionSchema
+    MenuOptionSchema, DeliveryZoneSchema, OperatingHoursSchema, UpdateOperatingHoursSchema
 from app.utils.validation import validate_request
 from app.routes.jwt import current_user, restaurant_required
 
@@ -53,7 +54,7 @@ class RestaurantResource(Resource):
             current_user=current_user,
             restaurant_id=restaurant_id
         )
-        return entity.delete_resaurant()
+        return entity.delete_restaurant()
 
 
 class RestaurantLoginResource(Resource):
@@ -242,6 +243,85 @@ class MenuOptionResource(Resource):
         return entity.delete_menu_option()
 
 
+class DeliveryZoneListResource(Resource):
+    endpoint = 'api.DeliveryZoneListResource'
+
+    @restaurant_required
+    def get(self, restaurant_id):
+        entity = DeliveryZoneListEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+        return entity.get_delivery_zones()
+
+    @restaurant_required
+    def post(self, restaurant_id):
+        data = validate_request(DeliveryZoneSchema, request.get_json())
+        entity = DeliveryZoneListEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+        return entity.create_delivery_zone(data)
+
+class DeliveryZoneResource(Resource):
+    endpoint = 'api.DeliveryZoneResource'
+
+    @restaurant_required
+    def put(self, delivery_zone_id):
+        data = validate_request(DeliveryZoneSchema, request.get_json())
+        entity = DeliveryZoneEntity(
+            current_user=current_user,
+            delivery_zone_id=delivery_zone_id
+        )
+        return entity.update_delivery_zone(data)
 
 
+    @restaurant_required
+    def delete(self, delivery_zone_id):
+        entity = DeliveryZoneEntity(
+            current_user=current_user,
+            delivery_zone_id=delivery_zone_id
+        )
+        return entity.delete_delivery_zone()
 
+
+class OperatingHoursListResource(Resource):
+    endpoint = 'api.OperatingHoursListResource'
+
+    @restaurant_required
+    def get(self, restaurant_id):
+        entity = OperatingHoursListEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+        return entity.get_operating_hour()
+
+    @restaurant_required
+    def post(self, restaurant_id):
+        data = validate_request(OperatingHoursSchema, request.get_json())
+        entity = OperatingHoursListEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+        return entity.create_operating_hour(data)
+
+
+class OperatingHoursResource(Resource):
+    endpoint = 'api.OperatingHoursResource'
+
+    @restaurant_required
+    def put(self, operating_hours_id):
+        data = validate_request(UpdateOperatingHoursSchema, request.get_json())
+        entity = OperatingHoursEntity(
+            current_user=current_user,
+            operating_hours_id=operating_hours_id
+        )
+        return entity.update_operating_hour(data)
+
+    @restaurant_required
+    def delete(self, operating_hours_id):
+        entity = OperatingHoursEntity(
+            current_user=current_user,
+            operating_hours_id=operating_hours_id
+        )
+        return entity.delete_operating_hour()

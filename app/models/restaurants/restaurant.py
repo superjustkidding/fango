@@ -206,6 +206,15 @@ class DeliveryZone(BaseModel):
     # 关系
     polygons = db.relationship('DeliveryPolygon', backref='delivery_zone', lazy=True)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "delivery_fee": self.delivery_fee,
+            "min_order_amount": self.min_order_amount,
+            "delivery_time": self.delivery_time,
+        }
+
     def __repr__(self):
         return f'<DeliveryZone {self.name}>'
 
@@ -236,6 +245,15 @@ class OperatingHours(BaseModel):
 
     # 外键
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'), nullable=False)
+
+    def to_dict(self):
+        return{
+            "id": self.id,
+            "day_of_week": self.day_of_week,
+            "open_time": self.open_time.strftime("%H:%M:%S") if self.open_time else None,
+            "close_time": self.close_time.strftime("%H:%M:%S") if self.close_time else None,
+            "is_closed": self.is_closed,
+        }
 
     def __repr__(self):
         return f'<OperatingHours for day {self.day_of_week}>'
