@@ -276,6 +276,17 @@ class Promotion(BaseModel):
     # 外键
     restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'), nullable=False)
 
+    def to_dict(self):
+        return{
+            'id': self.id,
+            "title": self.title,
+            "description": self.description,
+            "image": self.image,
+            "start_date": self.start_date.strftime("%Y-%m-%d %H:%M:%S") if self.start_date else None,
+            "end_date": self.end_date.strftime("%Y-%m-%d %H:%M:%S") if self.end_date else None,
+            "is_active": self.is_active,
+        }
+
     def __repr__(self):
         return f'<Promotion {self.title}>'
 

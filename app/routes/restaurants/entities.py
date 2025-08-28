@@ -3,7 +3,8 @@ from datetime import datetime
 from decimal import Decimal
 
 from app import db
-from app.models import Restaurant, MenuItem, MenuCategory, MenuOptionGroup, MenuOption, DeliveryZone, OperatingHours
+from app.models import Restaurant, MenuItem, MenuCategory, MenuOptionGroup, MenuOption, DeliveryZone, OperatingHours, \
+    Promotion
 from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
 
@@ -528,7 +529,6 @@ class DeliveryZoneEntity:
         return {"message": "deleted successfully"}, ECode.SUCC
 
 
-
 class OperatingHoursListEntity:
     def __init__(self, current_user, restaurant_id):
         self.current_user = current_user
@@ -598,7 +598,86 @@ class OperatingHoursEntity:
         return {"message": "Operating hours deleted successfully"}, ECode.SUCC
 
 
+class PromotionListEntity:
+    def __init__(self, current_user, restaurant_id):
+        self.current_user = current_user
+        self.restaurant_id = restaurant_id
+        self.restaurant = Restaurant.query.get(restaurant_id)
 
+    def get_promotion(self):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+        promotion = Promotion.query.filter_by(restaurant_id=self.restaurant.id).all()
+        return [p.to_dict() for p in promotion], ECode.SUCC
+
+    def post_promotion(self, data):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+        promotion = Promotion(
+            title=data['title'],
+            description=data['description'],
+            image=data['image'],
+            start_date=data['start_date'],
+            end_date=data['end_date'],
+            is_active=data.get('is_active'),
+            restaurant_id=self.restaurant.id,
+        )
+        db.session.add(promotion)
+        db.session.commit()
+        return promotion.to_dict(), ECode.SUCC
+
+
+class PromotionEntity:
+    def __init__(self, current_user, promotion_id):
+        self.current_user = current_user
+        self.promotion = Promotion.query.get(promotion_id)
+        self.restaurant_id = self.promotion.restaurant_id if self.promotion else None
+        self.restaurant = Restaurant.query.get(self.restaurant_id) if self.restaurant_id else None
+
+    def update_promotion(self, data):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+
+        if 'title' in data:
+            existing = Promotion.query.filter(
+                Promotion.title == data['title'],
+                Promotion.restaurant_id == self.restaurant_id,
+                Promotion.id != self.promotion.id,
+                Promotion.deleted == False
+            ).first()
+            if existing:
+                raise BusinessValidationError('Promotion title already exists', ECode.CONFLICT)
+            self.promotion.title = data['title'].strip()
+
+        if 'description' in data:
+            self.promotion.description = data['description']
+
+        if 'image' in data:
+            self.promotion.image = data['image']
+
+        if 'start_date' in data:
+            self.promotion.start_date = data['start_date']
+
+        if 'end_date' in data:
+            self.promotion.end_date = data['end_date']
+
+            # 验证时间逻辑
+            if (self.promotion.start_date and self.promotion.end_date and
+                    self.promotion.end_date <= self.promotion.start_date):
+                raise BusinessValidationError('结束时间必须晚于开始时间', ECode.BAD_REQUEST)
+
+        if 'is_active' in data:
+            self.promotion.is_active = data['is_active']
+
+        db.session.commit()
+        return self.promotion.to_dict(), ECode.SUCC
+
+    def delete_promotion(self):
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+        self.promotion.deleted = True
+        db.session.commit()
+        return {'message':"deleted successfully"}, ECode.SUCC
 
 
 

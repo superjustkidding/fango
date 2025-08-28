@@ -8,7 +8,7 @@
 from .resources import RestaurantListResource, RestaurantResource, RestaurantLoginResource, \
     MenuCategoryResource, MenuItemResource, MenuItemListResource, MenuCategoryListResource, MenuOptionGroupListResource, \
     MenuOptionGroupResource, MenuOptionListResource, MenuOptionResource, DeliveryZoneListResource, DeliveryZoneResource, \
-    OperatingHoursListResource, OperatingHoursResource
+    OperatingHoursListResource, OperatingHoursResource, PromotionListResource, PromotionResource
 
 
 def register_restaurant_routes(api):
@@ -28,6 +28,8 @@ def register_restaurant_routes(api):
     api.add_resource(DeliveryZoneResource, '/delivery_zone/<int:delivery_zone_id>')  # 配送区域详情
     api.add_resource(OperatingHoursListResource, '/restaurants/<int:restaurant_id>/operating_hours')  # 营业时间
     api.add_resource(OperatingHoursResource, '/operating_hours/<int:operating_hours_id>')  # 营业时间详情
+    api.add_resource(PromotionListResource, '/restaurants/<int:restaurant_id>/promotion')  # 促销活动
+    api.add_resource(PromotionResource, '/promotion/<int:promotion_id>')
 
     # 返回需要保护的端点列表
     return [
@@ -44,4 +46,6 @@ def register_restaurant_routes(api):
         'api.DeliveryZoneResource',
         'api.OperatingHoursListResource',
         'api.OperatingHoursResource',
+        'api.PromotionListResource',
+        'api.PromotionResource'
     ]

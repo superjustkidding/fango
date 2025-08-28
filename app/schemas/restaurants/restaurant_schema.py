@@ -98,6 +98,20 @@ class UpdateOperatingHoursSchema(Schema):
     close_time = fields.Time()
     is_closed = fields.Bool()
 
+class PromotionSchema(Schema):
+    title = fields.Str(required=True, validate=validate.Length(min=1, max=100))
+    description = fields.Str(allow_none=True)
+    image = fields.Str(allow_none=True, validate=validate.Length(max=200))
+    start_date = fields.DateTime(required=True, format="%Y-%m-%d %H:%M:%S")
+    end_date = fields.DateTime(required=True, format="%Y-%m-%d %H:%M:%S")
+    is_active = fields.Bool(missing=True)
 
+class UpdatePromotionSchema(Schema):
+    title = fields.Str(validate=validate.Length(min=1, max=100))
+    description = fields.Str(allow_none=True)
+    image = fields.Str(allow_none=True, validate=validate.Length(max=200))
+    start_date = fields.DateTime()
+    end_date = fields.DateTime()
+    is_active = fields.Bool()
 
 

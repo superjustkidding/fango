@@ -5,10 +5,11 @@ from flask_restful import Resource
 from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity, MenuItemListEntity, \
     MenuCategoryEntity, MenuItemEntity, MenuCategoryListEntity, MenuOptionGroupListEntity, MenuOptionGroupEntity, \
     MenuOptionListEntity, MenuOptionEntity, DeliveryZoneListEntity, DeliveryZoneEntity, OperatingHoursListEntity, \
-    OperatingHoursEntity
+    OperatingHoursEntity, PromotionListEntity, PromotionEntity
 from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLoginSchema, UpdateRestaurant, \
     MenuCategorySchema, UpdateMenuItemSchema, MenuItemSchema, MenuOptionGroupSchema, UpdateMenuOptionGroupSchema, \
-    MenuOptionSchema, DeliveryZoneSchema, OperatingHoursSchema, UpdateOperatingHoursSchema
+    MenuOptionSchema, DeliveryZoneSchema, OperatingHoursSchema, UpdateOperatingHoursSchema, PromotionSchema, \
+    UpdatePromotionSchema
 from app.utils.validation import validate_request
 from app.routes.jwt import current_user, restaurant_required
 
@@ -325,3 +326,45 @@ class OperatingHoursResource(Resource):
             operating_hours_id=operating_hours_id
         )
         return entity.delete_operating_hour()
+
+
+class PromotionListResource(Resource):
+    endpoint = 'api.PromotionListResource'
+
+    @restaurant_required
+    def get(self, restaurant_id):
+        entity = PromotionListEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+        return entity.get_promotion()
+
+    @restaurant_required
+    def post(self, restaurant_id):
+        data = validate_request(PromotionSchema, request.get_json())
+        entity = PromotionListEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+        return entity.post_promotion(data)
+
+
+class PromotionResource(Resource):
+    endpoint = 'api.PromotionResource'
+
+    @restaurant_required
+    def put(self, promotion_id):
+        data = validate_request(UpdatePromotionSchema, request.get_json())
+        entity = PromotionEntity(
+            current_user=current_user,
+            promotion_id=promotion_id
+        )
+        return entity.update_promotion(data)
+
+    @restaurant_required
+    def delete(self, promotion_id):
+        entity = PromotionEntity(
+            current_user=current_user,
+            promotion_id=promotion_id
+        )
+        return entity.delete_promotion()
