@@ -85,7 +85,7 @@ class MenuItemListResource(Resource):
             current_user=current_user,
             restaurant_id=restaurant_id
         )
-        return entity.get_menuitems()
+        return entity.get_all_menuitem()
 
 class MenuItemResource(Resource):
     endpoint = 'api.MenuItemResource'

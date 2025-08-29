@@ -54,6 +54,21 @@ class Rider(BaseModel, UserMixin):
     def get_id(self):
         return f"rider_{self.id}"
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'phone': self.phone,
+            'email': self.email,
+            'avatar': self.avatar,
+            'vehicle_type': self.vehicle_type,
+            'license_plate': self.license_plate,
+            'is_available': self.is_available,
+            'is_online': self.is_online,
+        }
+
+
+
     def __repr__(self):
         return f'<Rider {self.name}>'
 
@@ -74,6 +89,17 @@ class RiderLocation(BaseModel):
 
     def __repr__(self):
         return f'<RiderLocation ({self.latitude}, {self.longitude})>'
+
+    def to_dict(self):
+        """转换为字典格式"""
+        return {
+            'id': self.id,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'accuracy': self.accuracy,
+            'speed': self.speed,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+        }
 
 class RiderAssignment(BaseModel):
     """骑手订单分配"""

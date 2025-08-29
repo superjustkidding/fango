@@ -10,6 +10,7 @@ from app import db
 from app.utils.validation import BusinessValidationError
 from werkzeug.security import generate_password_hash
 from app.routes.jwt import create_auth_token
+from app.routes.logger import logger
 
 
 class UserEntity:
@@ -19,6 +20,7 @@ class UserEntity:
     def get_users(self, **filters):
         # 只有管理员可以查看用户列表
         if not self.current_user or not self.current_user.is_admin:
+            logger.error("Permission denied")
             raise BusinessValidationError("Permission denied", 403)
 
         query = User.query

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 from decimal import Decimal
 
 from app import db
@@ -9,7 +8,7 @@ from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
 
 from werkzeug.security import generate_password_hash
-from app.routes.jwt import create_auth_token, current_user
+from app.routes.jwt import create_auth_token
 
 
 class RestaurantEntity:
@@ -171,7 +170,7 @@ class MenuItemListEntity:
         return menuitem.to_dict(), ECode.SUCC
 
     """ 获取餐厅所有菜品 """
-    def get_menuitems(self):
+    def get_all_menuitem(self):
         menus = MenuItem.query.filter_by(restaurant_id=self.restaurant_id, deleted=False).all()
         return [menu.to_dict() for menu in menus], ECode.SUCC
 

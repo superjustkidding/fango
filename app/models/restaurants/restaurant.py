@@ -196,7 +196,7 @@ class DeliveryZone(BaseModel):
 
     # 区域信息
     name = db.Column(db.String(50), nullable=False)
-    delivery_fee = db.Column(db.Float, default=0.0)  # 配送费
+    delivery_fee = db.Column(db.Float, default=0.0)  # 基础配送费
     min_order_amount = db.Column(db.Float, default=0.0)  # 最低起送金额
     delivery_time = db.Column(db.Integer)  # 预计配送时间（分钟）
 
@@ -308,3 +308,5 @@ class RestaurantStatistics(BaseModel):
 
     def __repr__(self):
         return f'<RestaurantStats {self.date}>'
+
+
