@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-
+import os
 import logging
-
+import click
+import atexit
 
 from flask import Flask, current_app, request
-from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from flask.cli import with_appcontext
 from config import load_config
@@ -14,12 +14,14 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from extensions.logger import MongoDBHandler
 
+
 # 初始化扩展
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 cors = CORS()
 
+logger = logging.getLogger(__name__)
 
 def setup_logging(app):
     """配置应用日志"""
@@ -78,7 +80,6 @@ def create_app():
     # 配置JWT
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=15)
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
-
 
     # 初始化JWT
     jwt.init_app(app)
@@ -166,5 +167,55 @@ def create_app():
         db.session.add(admin)
         db.session.commit()
         app.logger.info(f"管理员 {admin_username} 创建成功")
+
+    # 创建websocket通道
+    # 添加自定义 CLI 命令
+    @app.cli.command("run-with-websocket")
+    @click.option("--host", default="0.0.0.0", help="Host to bind to")
+    @click.option("--port", default=5000, help="Port to bind to")
+    @click.option("--debug", is_flag=True, help="Run in debug mode")
+    @with_appcontext
+    def run_with_websocket(host, port, debug):
+        """Run the application with WebSocket support"""
+        try:
+            # 导入必要的模块
+            from websocket import socketio
+            from extensions.redis_sync import start_sync_service, stop_sync_service
+
+            # 初始化 SocketIO
+            socketio.init_app(app)
+
+            # 启动 Redis 同步服务
+            logger.info("Starting Redis sync service...")
+            start_sync_service()
+
+            # 注册退出时的清理函数
+            atexit.register(stop_sync_service)
+
+            # 设置调试模式
+            if debug:
+                os.environ["DEBUG"] = "true"
+                app.debug = True
+
+            logger.info(f"Starting application with WebSocket support on {host}:{port}")
+            logger.info(f"Debug mode: {debug}")
+
+            # 使用 socketio.run 启动应用
+            socketio.run(
+                app,
+                host=host,
+                port=port,
+                debug=debug,
+                use_reloader=False  # 禁用重载器，避免重复启动线程
+            )
+
+        except ImportError as e:
+            logger.error(f"Import error: {e}")
+            logger.error("Please make sure all dependencies are installed:")
+            logger.error("pip install flask-socketio eventlet redis")
+            raise
+        except Exception as e:
+            logger.error(f"Failed to start application: {e}")
+            raise
 
     return app

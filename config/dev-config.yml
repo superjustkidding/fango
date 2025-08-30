@@ -10,6 +10,13 @@ development:
   CELERY_RESULT_BACKEND: 'redis://192.168.1.76:6379/0'
   CELERY_TIMEZONE: 'Asia/Shanghai'
   CELERY_ENABLE_UTC: True
+
+  # redis config
+  REDIS_HOST: '192.168.1.76'
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  REDIS_PASSWORD: None
+
   # upload files
   UPLOAD_FOLDER: 'uploads/images'
   MAX_UPLOAD_LENGTH: 16777216  # 16MB

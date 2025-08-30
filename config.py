@@ -46,6 +46,12 @@ def load_config():
     env_config['MONGODB_LOG_COLLECTION'] = os.environ.get('MONGODB_LOG_COLLECTION',
                                                           env_config.get('MONGODB_LOG_COLLECTION', 'flask_logs'))
 
+    # REDIS配置
+    env_config['REDIS_HOST'] = os.environ.get('REDIS_HOST', env_config.get('REDIS_HOST', '192.168.1.76'))
+    env_config['REDIS_PORT'] = os.environ.get('REDIS_PORT', env_config.get('REDIS_PORT', 6379))
+    env_config['REDIS_DB'] = os.environ.get('REDIS_DB', env_config.get('REDIS_DB', 0))
+    env_config['REDIS_PASSWORD'] = os.environ.get('REDIS_PASSWORD', env_config.get('REDIS_PASSWORD', None))
+
     # CORS配置
     cors_origins = os.environ.get('CORS_ORIGINS', ','.join(
         env_config.get('CORS_ORIGINS', ['http://localhost:3000', 'http://127.0.0.1:3000'])))

@@ -67,8 +67,6 @@ class Rider(BaseModel, UserMixin):
             'is_online': self.is_online,
         }
 
-
-
     def __repr__(self):
         return f'<Rider {self.name}>'
 
