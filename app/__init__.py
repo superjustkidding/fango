@@ -7,22 +7,19 @@ from flask import Flask, current_app, request
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from flask.cli import with_appcontext
-
-from app.websocket.rider_ws import RiderLocationNamespace
 from config import load_config
 from flask_migrate import Migrate
 from datetime import timedelta
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from extensions.logger import MongoDBHandler
-import eventlet
+
 # 初始化扩展
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 cors = CORS()
-socketio = SocketIO()
-eventlet.monkey_patch()
+
 
 def setup_logging(app):
     """配置应用日志"""
@@ -82,11 +79,6 @@ def create_app():
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=15)
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 
-    socketio = SocketIO(app,
-                        cors_allowed_origins="*",
-                        async_mode='eventlet',  # 必须使用 eventlet
-                        logger=True,
-                        engineio_logger=True)
 
     # 初始化JWT
     jwt.init_app(app)
@@ -113,7 +105,6 @@ def create_app():
     from .routes import api
     api.init_app(app)
 
-    socketio.on_namespace(RiderLocationNamespace('/ws/riders'))
 
     # 注册错误处理器
     from .utils.validation import register_error_handlers

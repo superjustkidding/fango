@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 import math
 from datetime import datetime, timedelta
-
+import socketio
 from werkzeug.security import generate_password_hash
-
 from app import db
 from app.models import Rider, RiderLocation
-from app.models.riders import rider
 from app.routes.jwt import create_auth_token
-from app.routes.logger import logger
+from app.utils.geo import haversine
 from app.utils.validation import BusinessValidationError
+from app.utils.websocket import push_location_update
 from lib.ecode import ECode
 
 
@@ -104,7 +103,6 @@ class RiderEntity:
         }, ECode.SUCC
 
 
-
 class RiderItemEntity:
     def __init__(self, current_user, rider_id):
         self.current_user = current_user
@@ -174,160 +172,82 @@ class RiderItemEntity:
 
 
 class RiderLocationEntity:
-    """骑手位置实体"""
-
     def __init__(self, current_user, rider_id):
         self.current_user = current_user
         self.rider_id = rider_id
-        self.rider = Rider.query.filter_by(rider_id)
+        self.rider = Rider.query.filter_by(id=rider_id).first()
+        if not self.rider:
+            raise BusinessValidationError("Rider not found", ECode.NOTFOUND)
 
     def create_location(self, data):
-        """创建位置记录"""
-        # 权限检查：骑手只能上传自己的位置
+        """骑手上传实时位置"""
+        latitude = data["latitude"]
+        longitude = data["longitude"]
+        accuracy = data.get("accuracy")
+        speed = data.get("speed")
 
-        if not self.current_user.is_admin and self.current_user.id != self.rider_id:
-            raise BusinessValidationError("权限不足", ECode.FORBID)
+        # 权限校验：只能本人或管理员上传
+        if self.current_user.id != self.rider_id and not self.current_user.is_admin:
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
 
-        # 创建位置记录
         location = RiderLocation(
-            latitude=data['latitude'],
-            longitude=data['longitude'],
-            accuracy=data.get('accuracy'),
-            speed=data.get('speed'),
-            timestamp=data.get('timestamp', datetime.utcnow()),
-            rider_id=self.rider_id
+            rider_id=self.rider_id,
+            latitude=latitude,
+            longitude=longitude,
+            accuracy=accuracy,
+            speed=speed,
+            timestamp=datetime.utcnow(),
         )
-
         db.session.add(location)
         db.session.commit()
 
-        # 同时更新骑手的当前位置
-        rider = Rider.query.get(self.rider.id)
-        if rider:
-            rider.current_latitude = data['latitude']
-            rider.current_longitude = data['longitude']
-            rider.last_location_update = datetime.utcnow()
-            db.session.commit()
-        logger.info(f"骑手 {self.rider_id} 位置记录创建成功")
+        location_data = location.to_dict()
+        push_location_update(location_data)  # 推送给订阅者
+        return location_data, ECode.SUCC
+
+    def get_latest_location(self):
+        """获取骑手最新位置"""
+        location = (
+            RiderLocation.query.filter_by(rider_id=self.rider_id)
+            .order_by(RiderLocation.timestamp.desc())
+            .first()
+        )
+        if not location:
+            raise BusinessValidationError("No location found", ECode.NOTFOUND)
         return location.to_dict(), ECode.SUCC
 
-    def get_rider_locations(self, rider_id, limit=100, start_time=None, end_time=None):
-        """获取骑手位置历史"""
-        # 权限检查
-        if not self.current_user.is_admin and self.current_user.id != rider_id:
-            raise BusinessValidationError("权限不足", ECode.FORBID)
+    def get_location_history(self, limit=50):
+        """获取骑手历史位置"""
+        history = (
+            RiderLocation.query.filter_by(rider_id=self.rider_id)
+            .order_by(RiderLocation.timestamp.desc())
+            .limit(limit)
+            .all()
+        )
+        return [loc.to_dict() for loc in history], ECode.SUCC
 
-        query = RiderLocation.query.filter_by(rider_id=rider_id)
 
-        # 时间范围过滤
-        if start_time:
-            query = query.filter(RiderLocation.timestamp >= start_time)
-        if end_time:
-            query = query.filter(RiderLocation.timestamp <= end_time)
+class NearbyRidersEntity:
+    def __init__(self, current_user):
+        self.current_user = current_user
+        if not self.current_user.is_admin:
+            raise BusinessValidationError("Only admin can query nearby riders", ECode.FORBID)
 
-        # 排序和限制
-        locations = query.order_by(RiderLocation.timestamp.desc()).limit(limit).all()
+    def get_nearby_riders(self, lat, lon, radius=2000):
+        """管理员获取附近骑手"""
+        latest_locations = (
+            db.session.query(RiderLocation)
+            .order_by(RiderLocation.rider_id, RiderLocation.timestamp.desc())
+            .distinct(RiderLocation.rider_id)
+            .all()
+        )
 
-        return [loc.to_dict() for loc in locations], ECode.SUCC
+        nearby = []
+        for loc in latest_locations:
+            dist = haversine(lat, lon, loc.latitude, loc.longitude)
+            if dist <= radius:
+                rider_info = loc.to_dict()
+                rider_info.update({"distance": dist})
+                nearby.append(rider_info)
 
-    def get_current_location(self, rider_id):
-        """获取骑手最新位置"""
-        # 权限检查
-        if not self.current_user.is_admin and self.current_user.id != rider_id:
-            raise BusinessValidationError("权限不足", ECode.FORBID)
-
-        try:
-            location = RiderLocation.query.filter_by(rider_id=rider_id) \
-                .order_by(RiderLocation.created_at.desc()) \
-                .first()
-
-            if not location:
-                raise BusinessValidationError("未找到骑手位置信息", ECode.NOTFOUND)
-
-            return location.to_dict(), ECode.SUCC
-
-        except BusinessValidationError:
-            raise
-        except Exception as e:
-            logger.error(f"获取最新位置失败: {str(e)}")
-            raise BusinessValidationError("获取位置信息失败", ECode.ERROR)
-
-    def get_nearby_riders(self, latitude, longitude, radius=5000, limit=20, online_only=True):
-        """获取附近骑手（管理员使用）"""
-        try:
-            # 验证坐标
-            if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
-                raise BusinessValidationError("经纬度格式错误", ECode.ERROR)
-
-            # 计算边界框（简化版，生产环境建议使用PostGIS）
-            # 1度纬度约111公里，1度经度约111*cos(latitude)公里
-            lat_degree = radius / 111000
-            lon_degree = radius / (111000 * math.cos(math.radians(latitude)))
-
-            min_lat = latitude - lat_degree
-            max_lat = latitude + lat_degree
-            min_lon = longitude - lon_degree
-            max_lon = longitude + lon_degree
-
-            # 构建查询
-            query = RiderLocation.query.filter(
-                RiderLocation.latitude.between(min_lat, max_lat),
-                RiderLocation.longitude.between(min_lon, max_lon),
-                RiderLocation.created_at >= datetime.utcnow() - timedelta(minutes=5)  # 只查询最近5分钟的数据
-            )
-
-            if online_only:
-                query = query.filter_by(online_status=True)
-
-            # 获取每个骑手的最新位置
-            subquery = db.session.query(
-                RiderLocation.rider_id,
-                db.func.max(RiderLocation.created_at).label('max_created_at')
-            ).group_by(RiderLocation.rider_id).subquery()
-
-            locations = query.join(
-                subquery,
-                db.and_(
-                    RiderLocation.rider_id == subquery.c.rider_id,
-                    RiderLocation.created_at == subquery.c.max_created_at
-                )
-            ).limit(limit).all()
-
-            # 计算距离并排序
-            riders_with_distance = []
-            for loc in locations:
-                distance = self._calculate_distance(latitude, longitude, loc.latitude, loc.longitude)
-                if distance <= radius:
-                    rider_data = loc.to_dict()
-                    rider_data['distance'] = distance
-                    riders_with_distance.append(rider_data)
-
-            # 按距离排序
-            riders_with_distance.sort(key=lambda x: x['distance'])
-
-            return {
-                'count': len(riders_with_distance),
-                'center': {'latitude': latitude, 'longitude': longitude},
-                'radius': radius,
-                'riders': riders_with_distance
-            }, ECode.SUCC
-
-        except Exception as e:
-            logger.error(f"获取附近骑手失败: {str(e)}")
-            raise BusinessValidationError("获取附近骑手失败", ECode.ERROR)
-
-    def _calculate_distance(self, lat1, lon1, lat2, lon2):
-        """计算两个坐标点之间的距离（米）"""
-        # 使用Haversine公式
-        R = 6371000  # 地球半径（米）
-
-        lat1_rad = math.radians(lat1)
-        lat2_rad = math.radians(lat2)
-        delta_lat = math.radians(lat2 - lat1)
-        delta_lon = math.radians(lon2 - lon1)
-
-        a = (math.sin(delta_lat / 2) ** 2 +
-             math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon / 2) ** 2)
-        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-        return R * c
+        return nearby, ECode.SUCC
