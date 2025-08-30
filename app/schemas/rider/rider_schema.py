@@ -59,3 +59,7 @@ class RiderLocationSchema(Schema):
 
 
 
+class GetNearbySchema(Schema):
+    lat = fields.Float(required=True)
+    lon = fields.Float(required=True)
+    radius = fields.Float()

@@ -2,22 +2,21 @@
 from datetime import datetime
 
 from flask import request
-from flask_restful import Resource, reqparse
-
+from flask_restful import Resource
 from app.routes.jwt import rider_required, current_user
 from app.routes.logger import logger
 from app.routes.riders.entities import RiderEntity, RiderItemEntity, RiderLocationEntity, NearbyRidersEntity
-from app.schemas.rider.rider_schema import RiderSchema, UpdateRiderSchema, RiderLoginSchema, RiderLocationSchema
-from app.utils.validation import validate_request, BusinessValidationError
-from lib.ecode import ECode
-import socketio
+from app.schemas.rider.rider_schema import RiderSchema, UpdateRiderSchema, RiderLoginSchema, RiderLocationSchema, \
+    GetNearbySchema
+from app.utils.validation import validate_request
+
 
 class RiderListResource(Resource):
     endpoint='api.RiderListResource'
 
     @rider_required
     def get(self):
-        entity=RiderEntity(current_user=current_user)
+        entity = RiderEntity(current_user=current_user)
         return entity.get_all_riders()
 
     @rider_required
@@ -28,6 +27,7 @@ class RiderListResource(Resource):
 
 class RiderResource(Resource):
     endpoint='api.RiderResource'
+
     @rider_required
     def get(self, rider_id):
         entity = RiderItemEntity(
@@ -35,6 +35,7 @@ class RiderResource(Resource):
             rider_id=rider_id
         )
         return entity.get_rider()
+
     @rider_required
     def put(self, rider_id):
         data = validate_request(UpdateRiderSchema, request.get_json())
@@ -43,6 +44,7 @@ class RiderResource(Resource):
             rider_id=rider_id
         )
         return entity.update_rider(data)
+
     @rider_required
     def delete(self, rider_id):
         entity = RiderItemEntity(
@@ -54,6 +56,7 @@ class RiderResource(Resource):
 
 class RiderLoginResource(Resource):
     endpoint='api.RiderLoginResource'
+
     @rider_required
     def post(self):
         data = validate_request(RiderLoginSchema, request.get_json())
