@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 from decimal import Decimal
 
 from app import db
 from app.models import Restaurant, MenuItem, MenuCategory, MenuOptionGroup, MenuOption, DeliveryZone, OperatingHours, \
-    Promotion
+    Promotion, DeliveryPolygon, RestaurantStatistics
 from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
 
@@ -527,6 +528,55 @@ class DeliveryZoneEntity:
         db.session.commit()
         return {"message": "deleted successfully"}, ECode.SUCC
 
+class DeliveryPolygonListEntity:
+    def __init__(self, current_user, zone_id):
+        self.current_user = current_user
+        self.zone_id = zone_id
+        self.zone = DeliveryZone.query.get(zone_id)
+
+    def create_polygon(self, data):
+        if not self.current_user.is_admin:
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+
+        polygon = DeliveryPolygon(
+            coordinates=data["coordinates"],
+            zone_id=data["zone_id"]
+        )
+        db.session.add(polygon)
+        db.session.commit()
+        return polygon.to_dict(), ECode.SUCC
+
+    def list_polygons_by_zone(self):
+        """
+        获取某个配送区域下的所有多边形
+        """
+        polygons = DeliveryPolygon.query.filter_by(zone_id=self.zone_id).all()
+        return polygons.to_dict(), ECode.SUCC
+
+class DeliveryPolygonEntity:
+    def __init__(self, current_user, polygon_id):
+        self.current_user = current_user
+        self.polygon = DeliveryPolygon.query.get(polygon_id)
+
+        if not self.polygon:
+            raise BusinessValidationError("Polygon not found", ECode.NOTFOUND)
+
+    def get_polygon(self, polygon_id):
+        """
+        获取单个多边形
+        """
+        polygon = DeliveryPolygon.query.get(polygon_id)
+
+        return polygon.to_dict(), ECode.SUCC
+
+    def delete_polygon(self, polygon_id):
+        """
+        删除多边形
+        """
+        polygon = DeliveryPolygon.query.get(polygon_id)
+        db.session.delete(polygon)
+        db.session.commit()
+        return {"message": "Deleted"}, ECode.SUCC
 
 class OperatingHoursListEntity:
     def __init__(self, current_user, restaurant_id):
@@ -534,15 +584,14 @@ class OperatingHoursListEntity:
         self.restaurant_id = restaurant_id
         self.restaurant = Restaurant.query.get(restaurant_id)
 
-    def get_operating_hour(self):
         if not self.restaurant:
             raise BusinessValidationError("Restaurant not found", ECode.ERROR)
+
+    def get_operating_hour(self):
         operating_hour = OperatingHours.query.filter_by(restaurant_id=self.restaurant.id)
         return [o.to_dict() for o in operating_hour], ECode.SUCC
 
     def create_operating_hour(self, data):
-        if not self.restaurant:
-            raise BusinessValidationError("Restaurant not found", ECode.ERROR)
         operating_hour = OperatingHours(
             day_of_week=data['day_of_week'],
             open_time=data['open_time'],
@@ -679,5 +728,42 @@ class PromotionEntity:
         return {'message':"deleted successfully"}, ECode.SUCC
 
 
+class RestaurantStatisticsEntity:
+    def __init__(self, current_user, restaurant_id):
+        self.current_user = current_user
+        self.restaurant_id = restaurant_id
+        self.restaurant = Restaurant.query.get(restaurant_id)
 
+        if not self.restaurant:
+            raise BusinessValidationError("Restaurant not found", ECode.NOTFOUND)
 
+    def list_statistics(self):
+        """
+        获取餐馆的所有统计历史数据（管理员专用）
+        """
+        if not self.current_user.is_admin and self.restaurant_id:
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+
+        stats = RestaurantStatistics.query.filter_by(restaurant_id=self.restaurant_id).order_by(
+            RestaurantStatistics.date.desc()
+        ).all()
+
+        return [s.to_dict() for s in stats], ECode.SUCC
+
+    def get_statistics(self, date):
+        if not self.current_user.is_admin and self.restaurant_id:
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+
+        query = RestaurantStatistics.query.filter_by(restaurant_id=self.restaurant_id)
+
+        if date:
+            query = query.filter_by(date=date)
+            stat = query.first()
+        else:
+            # 默认获取最新一条
+            stat = query.order_by(RestaurantStatistics.date.desc()).first()
+
+        if not stat:
+            raise BusinessValidationError("Statistics not found", ECode.NOTFOUND)
+
+        return stat.to_dict(), ECode.SUCC

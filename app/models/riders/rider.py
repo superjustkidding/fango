@@ -120,3 +120,15 @@ class RiderAssignment(BaseModel):
 
     def __repr__(self):
         return f'<RiderAssignment {self.order_id} to {self.rider_id}>'
+
+    def to_dict(self):
+        """转成可序列化的字典，用于 API 返回和 WebSocket 推送"""
+        return {
+            "id": self.id,
+            "order_id": self.order_id,
+            "rider_id": self.rider_id,
+            "status": self.status,
+            "assigned_at": self.assigned_at.isoformat() if self.assigned_at else None,
+            "responded_at": self.responded_at.isoformat() if self.responded_at else None,
+
+        }

@@ -5,11 +5,12 @@ from flask_restful import Resource
 from app.routes.restaurants.entities import RestaurantEntity, RestaurantItemEntity, MenuItemListEntity, \
     MenuCategoryEntity, MenuItemEntity, MenuCategoryListEntity, MenuOptionGroupListEntity, MenuOptionGroupEntity, \
     MenuOptionListEntity, MenuOptionEntity, DeliveryZoneListEntity, DeliveryZoneEntity, OperatingHoursListEntity, \
-    OperatingHoursEntity, PromotionListEntity, PromotionEntity
+    OperatingHoursEntity, PromotionListEntity, PromotionEntity, DeliveryPolygonListEntity, DeliveryPolygonEntity, \
+    RestaurantStatisticsEntity
 from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLoginSchema, UpdateRestaurant, \
     MenuCategorySchema, UpdateMenuItemSchema, MenuItemSchema, MenuOptionGroupSchema, UpdateMenuOptionGroupSchema, \
     MenuOptionSchema, DeliveryZoneSchema, OperatingHoursSchema, UpdateOperatingHoursSchema, PromotionSchema, \
-    UpdatePromotionSchema
+    UpdatePromotionSchema, DeliveryPolygonCreateSchema
 from app.utils.validation import validate_request
 from app.routes.jwt import current_user, restaurant_required
 
@@ -276,7 +277,6 @@ class DeliveryZoneResource(Resource):
         )
         return entity.update_delivery_zone(data)
 
-
     @restaurant_required
     def delete(self, delivery_zone_id):
         entity = DeliveryZoneEntity(
@@ -285,6 +285,53 @@ class DeliveryZoneResource(Resource):
         )
         return entity.delete_delivery_zone()
 
+class DeliveryPolygonListResource(Resource):
+    endpoint = 'api.DeliveryPolygonListResource'
+    """
+    多边形集合接口
+    - POST: 创建多边形
+    - GET: 获取某配送区域下的所有多边形
+    """
+    @restaurant_required
+    def post(self, zone_id):
+        # 校验请求参数
+        data = validate_request(DeliveryPolygonCreateSchema, request.get_json())
+        entity = DeliveryPolygonListEntity(
+            current_user=current_user,
+            zone_id=zone_id
+        )
+        return entity.create_polygon(data)
+
+    @restaurant_required
+    def get(self, zone_id):
+        entity = DeliveryPolygonListEntity(
+            current_user=current_user,
+            zone_id=zone_id
+        )
+        return entity.list_polygons_by_zone()
+
+class DeliveryPolygonResource(Resource):
+    endpoint = 'api.DeliveryPolygonResource'
+    """
+    单个多边形接口
+    - GET: 获取多边形详情
+    - DELETE: 删除多边形
+    """
+    @restaurant_required
+    def get(self, polygon_id):
+        entity = DeliveryPolygonEntity(
+            current_user=current_user,
+            polygon_id=polygon_id
+        )
+        return entity.get_polygon()
+
+    @restaurant_required
+    def delete(self, polygon_id):
+        entity = DeliveryPolygonEntity(
+            current_user=current_user,
+            polygon_id=polygon_id
+        )
+        return entity.delete_polygon()
 
 class OperatingHoursListResource(Resource):
     endpoint = 'api.OperatingHoursListResource'
@@ -368,3 +415,31 @@ class PromotionResource(Resource):
             promotion_id=promotion_id
         )
         return entity.delete_promotion()
+
+class RestaurantStatisticsListResource(Resource):
+    """
+    餐馆统计信息接口（历史数据）
+    - GET: 获取某餐馆的所有统计历史数据
+    """
+    @restaurant_required
+    def get(self, restaurant_id):
+        entity = RestaurantStatisticsEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+
+        return entity.get_statistics()
+
+class RestaurantStatisticsResource(Resource):
+    """
+    餐馆统计信息接口（单个餐馆）
+    - GET: 获取某餐馆的统计数据
+    """
+    @restaurant_required
+    def get(self, restaurant_id):
+        date = request.args.get("date")  # 可选参数
+        entity = RestaurantStatisticsEntity(
+            current_user=current_user,
+            restaurant_id=restaurant_id
+        )
+        return entity.get_statistics(date)

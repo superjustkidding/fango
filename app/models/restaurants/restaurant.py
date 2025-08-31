@@ -232,6 +232,13 @@ class DeliveryPolygon(BaseModel):
     def __repr__(self):
         return f'<DeliveryPolygon for zone {self.zone_id}>'
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "coordinates": self.coordinates,
+
+        }
+
 
 class OperatingHours(BaseModel):
     """营业时间"""
@@ -308,5 +315,17 @@ class RestaurantStatistics(BaseModel):
 
     def __repr__(self):
         return f'<RestaurantStats {self.date}>'
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "date": self.date,
+            "total_orders": self.total_orders,
+            "completed_orders": self.completed_orders,
+            "canceled_orders": self.canceled_orders,
+            "total_revenue": self.total_revenue,
+            "average_rating": self.average_rating,
+            "popular_items": self.popular_items,
+        }
 
 

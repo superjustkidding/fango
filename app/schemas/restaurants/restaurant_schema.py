@@ -84,6 +84,15 @@ class DeliveryZoneSchema(Schema):
     min_order_amount = fields.Decimal(required=True, places=2, validate=validate.Range(min=0))
     delivery_time = fields.Int()
 
+class DeliveryPolygonCreateSchema(Schema):
+
+    coordinates = fields.List(
+        fields.List(fields.Float(), validate=lambda x: len(x) == 2),
+        required=True,
+        description="多边形坐标点，格式 [[lng, lat], [lng, lat], ...]"
+    )
+
+
 
 class OperatingHoursSchema(Schema):
     day_of_week = fields.Int(required=True, validate=lambda x: 0 <= x <= 6)

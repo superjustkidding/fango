@@ -8,7 +8,8 @@
 from .resources import RestaurantListResource, RestaurantResource, RestaurantLoginResource, \
     MenuCategoryResource, MenuItemResource, MenuItemListResource, MenuCategoryListResource, MenuOptionGroupListResource, \
     MenuOptionGroupResource, MenuOptionListResource, MenuOptionResource, DeliveryZoneListResource, DeliveryZoneResource, \
-    OperatingHoursListResource, OperatingHoursResource, PromotionListResource, PromotionResource
+    OperatingHoursListResource, OperatingHoursResource, PromotionListResource, PromotionResource, \
+    DeliveryPolygonListResource, DeliveryPolygonResource, RestaurantStatisticsResource, RestaurantStatisticsListResource
 
 
 def register_restaurant_routes(api):
@@ -26,10 +27,14 @@ def register_restaurant_routes(api):
     api.add_resource(MenuOptionResource, '/options/<int:menu_option_id>')  # 菜品选项详情
     api.add_resource(DeliveryZoneListResource, '/restaurants/<int:restaurant_id>/delivery_zone')  # 配送区域
     api.add_resource(DeliveryZoneResource, '/delivery_zone/<int:delivery_zone_id>')  # 配送区域详情
+    api.add_resource(DeliveryPolygonListResource,'/zones/<int:zone_id>/polygons')  # 配送区域多边形
+    api.add_resource(DeliveryPolygonResource, "/polygons/<int:polygon_id>")  # 配送区域多边形详情
     api.add_resource(OperatingHoursListResource, '/restaurants/<int:restaurant_id>/operating_hours')  # 营业时间
     api.add_resource(OperatingHoursResource, '/operating_hours/<int:operating_hours_id>')  # 营业时间详情
     api.add_resource(PromotionListResource, '/restaurants/<int:restaurant_id>/promotion')  # 促销活动
     api.add_resource(PromotionResource, '/promotion/<int:promotion_id>')
+    api.add_resource(RestaurantStatisticsResource, "/restaurants/<int:restaurant_id>/statistics")  # 日期获取统计信息
+    api.add_resource(RestaurantStatisticsListResource, "/restaurants/<int:restaurant_id>/statistics/history")  # 历史统计信息
 
     # 返回需要保护的端点列表
     return [
@@ -44,6 +49,8 @@ def register_restaurant_routes(api):
         'api.MenuOptionGroupResource',
         'api.DeliveryZoneListResource',
         'api.DeliveryZoneResource',
+        'api.DeliveryPolygonListResource',
+        'api.DeliveryPolygonResource',
         'api.OperatingHoursListResource',
         'api.OperatingHoursResource',
         'api.PromotionListResource',
