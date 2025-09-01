@@ -6,13 +6,14 @@ from app import db
 from app.models import Rider
 from datetime import datetime
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from app.utils.geo import haversine
+from config import load_config
 
+config = load_config()
 
 # 初始化 Redis 连接
-redis_client = redis.Redis(host='localhost',
-                           port=6379,
-                           db=0,
+redis_client = redis.Redis(host=config["REDIS_HOST"],
+                           port=config["REDIS_PORT"],
+                           db=config["REDIS_DB"],
                            decode_responses=True)
 
 socketio = SocketIO(cors_allowed_origins="*")
@@ -21,8 +22,6 @@ socketio = SocketIO(cors_allowed_origins="*")
 RIDER_LOCATION_CHANNEL = "rider_locations"
 # 任务分配通道名称
 TASK_ASSIGNMENT_CHANNEL = "task_assignments"
-
-
 
 
 @socketio.on("connect", namespace="/riders")
@@ -35,8 +34,8 @@ def handle_rider_connect(data):
     """骑手连接并认证"""
     rider_id = data.get('rider_id')
     token = data.get('token')
-    # token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1NTczNTk1MSwianRpIjoiNDNlZWU1MGMtOWY0ZC00YmNjLTlmZmUtNTQxNjgxNjE5MGRhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IntcImlkXCI6IDEsIFwidHlwZVwiOiBcInJlc3RhdXJhbnRcIiwgXCJpc19hZG1pblwiOiBmYWxzZX0iLCJuYmYiOjE3NTU3MzU5NTEsImNzcmYiOiIyMjdmOThkOS0zZmI5LTRjZGQtOWZhNS05NDFjY2I1NTU3NmUiLCJleHAiOjE3NTU4MjIzNTEsImlkZW50aXR5X3R5cGUiOiJyZXN0YXVyYW50IiwiaXNfYWRtaW4iOmZhbHNlfQ.uBgERbLMMV9eCltTm6MzBKEKKdJjSV26gMgv4YecxyQ "
-    # token = {"rider_id":1, "order_uuid":"xxxxxxxxxxxxxxxx"}
+    # token = "Bearer eyJhbGciOiJIUzI4YecxyQ "
+    # token = {"rider_id":1, "order_uuid":"order_id"}
 
     # 这里应该添加认证逻辑，验证 token 和 rider_id 的有效性
     # 简化示例，假设认证通过
