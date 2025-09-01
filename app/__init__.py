@@ -179,10 +179,11 @@ def create_app():
         """Run the application with WebSocket support"""
         try:
             # 导入必要的模块
-            from websocket import socketio
+            from flask_socketio import SocketIO
             from extensions.redis_sync import start_sync_service, stop_sync_service
 
             # 初始化 SocketIO
+            socketio = SocketIO()
             socketio.init_app(app)
 
             # 启动 Redis 同步服务
@@ -193,9 +194,9 @@ def create_app():
             atexit.register(stop_sync_service)
 
             # 设置调试模式
-            if debug:
-                os.environ["DEBUG"] = "true"
-                app.debug = True
+            # if debug:
+            #     os.environ["DEBUG"] = "true"
+            #     app.debug = True
 
             logger.info(f"Starting application with WebSocket support on {host}:{port}")
             logger.info(f"Debug mode: {debug}")
@@ -211,8 +212,8 @@ def create_app():
 
         except ImportError as e:
             logger.error(f"Import error: {e}")
-            logger.error("Please make sure all dependencies are installed:")
-            logger.error("pip install flask-socketio eventlet redis")
+            # logger.error("Please make sure all dependencies are installed:")
+            # logger.error("pip install flask-socketio eventlet redis")
             raise
         except Exception as e:
             logger.error(f"Failed to start application: {e}")

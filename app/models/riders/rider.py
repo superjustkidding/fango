@@ -84,6 +84,7 @@ class RiderLocation(BaseModel):
 
     # 外键
     rider_id = db.Column(db.Integer, db.ForeignKey('riders.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
 
     def __repr__(self):
         return f'<RiderLocation ({self.latitude}, {self.longitude})>'
@@ -122,7 +123,6 @@ class RiderAssignment(BaseModel):
         return f'<RiderAssignment {self.order_id} to {self.rider_id}>'
 
     def to_dict(self):
-        """转成可序列化的字典，用于 API 返回和 WebSocket 推送"""
         return {
             "id": self.id,
             "order_id": self.order_id,

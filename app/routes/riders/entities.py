@@ -189,7 +189,7 @@ class RiderLocationEntity:
         order_id = data.get("order_id")
 
         # 权限校验：只能本人或管理员上传
-        if self.current_user.id != self.rider_id and not self.current_user.is_admin:
+        if self.current_user.id != self.rider_id or not self.current_user.is_admin:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         # 1. 存入数据库
@@ -238,19 +238,27 @@ class RiderLocationEntity:
             raise BusinessValidationError("No location found", ECode.NOTFOUND)
         return location.to_dict(), ECode.SUCC
 
-    def get_location_history(self, limit=50):
+    def get_location_history(self, limit=50, order_id=None):
         """获取骑手历史位置"""
-        history = redis_client.zrevrange(f"rider_locations:{self.rider_id}", 0, limit - 1)
-        if history:
-            return [json.loads(h) for h in history], ECode.SUCC
+        key = f"rider_locations:{self.rider_id}"
+        if order_id:
+            history = redis_client.zrevrange(key, 0, limit - 1)
+            if history:
+                filtered =[
+                    json.loads(h) for h in history
+                    if json.loads(h).get("order_id") == order_id
 
-        history = (
-            RiderLocation.query.filter_by(rider_id=self.rider_id)
-            .order_by(RiderLocation.timestamp.desc())
-            .limit(limit)
-            .all()
-        )
-        return [loc.to_dict() for loc in history], ECode.SUCC
+                ]
+                if filtered:
+                    return filtered[:limit], ECode.SUCC
+
+            history_db = (
+                RiderLocation.query.filter_by(rider_id=self.rider_id)
+                .order_by(RiderLocation.timestamp.desc())
+                .limit(limit)
+                .all()
+            )
+            return [loc.to_dict() for loc in history_db], ECode.SUCC
 
 
 class NearbyRidersEntity:
@@ -290,81 +298,3 @@ class RiderAssignmentEntity:
         if not self.order:
             raise BusinessValidationError("Order not found", ECode.NOTFOUND)
 
-    def assign_order(self, rider_id):
-        """管理员/系统分配订单给骑手"""
-        if not self.current_user.is_admin:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
-
-        assignment = RiderAssignment(
-            order_id=self.order_id,
-            rider_id=rider_id,
-            status=RiderAssignment.STATUS_PENDING,
-            assigned_at=datetime.utcnow()
-        )
-        db.session.add(assignment)
-        db.session.commit()
-
-        assignment_data = assignment.to_dict()
-
-        # 发布到 Redis
-        redis_client.publish(TASK_ASSIGNMENT_CHANNEL, json.dumps(assignment_data))
-
-        # 推送 WebSocket 通知
-        room = f"rider_{rider_id}"
-        socketio.emit("task_assigned", assignment_data, namespace="/riders", room=room)
-
-        return assignment_data, ECode.SUCC
-
-    def respond_assignment(self, accept: bool):
-        """骑手响应订单分配（接受/拒绝）"""
-        assignment = RiderAssignment.query.filter_by(
-            order_id=self.order_id, rider_id=self.rider_id
-        ).order_by(RiderAssignment.assigned_at.desc()).first()
-
-        if not assignment:
-            raise BusinessValidationError("Assignment not found", ECode.NOTFOUND)
-
-        if self.current_user.id != self.rider_id:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
-
-        assignment.status = (
-            RiderAssignment.STATUS_ACCEPTED if accept else RiderAssignment.STATUS_REJECTED
-        )
-        assignment.responded_at = datetime.utcnow()
-        db.session.commit()
-
-        resp_data = assignment.to_dict()
-
-        # Redis 通知（方便后续扩展，比如餐馆/用户端监听）
-        redis_client.publish(TASK_ASSIGNMENT_CHANNEL, json.dumps(resp_data))
-
-        # WebSocket 通知（推给餐馆/用户端）
-        socketio.emit("task_response", resp_data, namespace="/orders", room=f"order_{self.order_id}")
-
-        return resp_data, ECode.SUCC
-
-    def cancel_assignment(self):
-        """管理员/系统取消分配"""
-        if not self.current_user.is_admin:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
-
-        assignment = RiderAssignment.query.filter_by(
-            order_id=self.order_id, rider_id=self.rider_id
-        ).order_by(RiderAssignment.assigned_at.desc()).first()
-
-        if not assignment:
-            raise BusinessValidationError("Assignment not found", ECode.NOTFOUND)
-
-        assignment.status = RiderAssignment.STATUS_CANCELED
-        db.session.commit()
-
-        cancel_data = assignment.to_dict()
-
-        # Redis 通知
-        redis_client.publish(TASK_ASSIGNMENT_CHANNEL, json.dumps(cancel_data))
-
-        # WebSocket 通知（推给骑手）
-        room = f"rider_{self.rider_id}"
-        socketio.emit("task_canceled", cancel_data, namespace="/riders", room=room)
-
-        return cancel_data, ECode.SUCC

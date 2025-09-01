@@ -22,3 +22,5 @@ EXPOSE 5000
 
 # 启动命令
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "run:app"]
+CMD ["flask", "create-admin"]
+CMD ["flask", "run-with-websocket"]
