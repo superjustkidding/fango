@@ -415,8 +415,6 @@ class MenuOptionListEntity:
             name=data['name'],
             price=Decimal(data['price']),
             option_group_id=self.group.id
-
-
         )
         db.session.add(option)
         db.session.commit()

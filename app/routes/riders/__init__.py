@@ -18,6 +18,4 @@ def register_rider_routes(api):
         'api.RiderLocationResource',
         'api.RiderLocationHistoryResource',
         'api.NearbyRidersResource'
-
-
     ]

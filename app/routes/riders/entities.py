@@ -24,7 +24,7 @@ class RiderEntity:
         if Rider.query.filter_by(email=data['email']).first():
             raise BusinessValidationError('email already exists', ECode.CONFLICT)
 
-        rider = Rider (
+        rider = Rider(
             name=data['name'],
             email=data['email'],
             phone=data.get('phone'),
@@ -169,7 +169,7 @@ class RiderItemEntity:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
         self.rider.deleted = True
         db.session.commit()
-        return {'message':'deleted successfully'}, ECode.SUCC
+        return {'message': 'deleted successfully'}, ECode.SUCC
 
 
 class RiderLocationEntity:
@@ -259,6 +259,7 @@ class RiderLocationEntity:
                 .all()
             )
             return [loc.to_dict() for loc in history_db], ECode.SUCC
+        return None
 
 
 class NearbyRidersEntity:
