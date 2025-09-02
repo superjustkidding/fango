@@ -12,7 +12,7 @@ from app.utils.validation import validate_request
 
 
 class RiderListResource(Resource):
-    endpoint='api.RiderListResource'
+    endpoint = 'api.RiderListResource'
 
     @rider_required
     def get(self):
@@ -26,7 +26,7 @@ class RiderListResource(Resource):
         return entity.create_rider(data)
 
 class RiderResource(Resource):
-    endpoint='api.RiderResource'
+    endpoint = 'api.RiderResource'
 
     @rider_required
     def get(self, rider_id):
