@@ -57,6 +57,23 @@ class Order(BaseModel):
     def __repr__(self):
         return f'<Order {self.id} - {self.status}>'
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'uuid': self.uuid,
+            'status': self.status,
+            'total_amount': self.total_amount,
+            'delivery_fee': self.delivery_fee,
+            'discount_amount': self.discount_amount,
+            'final_amount': self.final_amount,
+            'delivery_address': self.delivery_address,
+            'special_instructions': self.special_instructions,
+            'estimated_preparation_time': self.estimated_preparation_time,
+            'estimated_delivery_time': self.estimated_delivery_time.isoformat() if self.estimated_delivery_time else None,
+            'actual_delivery_time': self.actual_delivery_time.isoformat() if self.actual_delivery_time else None,
+
+        }
+
 
 class OrderItem(BaseModel):
     """订单项"""

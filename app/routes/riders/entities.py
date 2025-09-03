@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import math
-from datetime import datetime, timedelta
-import socketio
+from datetime import datetime
 from flask import json
 from werkzeug.security import generate_password_hash
 from app import db
@@ -9,7 +8,7 @@ from app.models import Rider, RiderLocation, RiderAssignment
 from app.routes.jwt import create_auth_token
 from app.utils.geo import haversine
 from app.utils.validation import BusinessValidationError
-from app.utils.websocket import  redis_client, TASK_ASSIGNMENT_CHANNEL
+from app.utils.websocket import redis_client, socketio
 from lib.ecode import ECode
 
 
