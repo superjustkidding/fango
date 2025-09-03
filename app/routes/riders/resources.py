@@ -14,7 +14,7 @@ from app.utils.validation import validate_request
 class RiderListResource(Resource):
     endpoint = 'api.RiderListResource'
 
-    @rider_required
+    @admin_required
     def get(self):
         entity = RiderEntity(current_user=current_user)
         return entity.get_all_riders()
@@ -60,28 +60,28 @@ class RiderLoginResource(Resource):
     @rider_required
     def post(self):
         data = validate_request(RiderLoginSchema, request.get_json())
-        entity = RiderEntity()
+        entity = RiderEntity(data)
         return entity.rider_login(data)
 
 class RiderLocationResource(Resource):
     """骑手实时位置接口"""
 
-    @rider_required
-    def post(self, rider_id):
-        """上传位置"""
-        data = validate_request(RiderLocationSchema, request.get_json())
-        entity = RiderLocationEntity(
-            current_user=current_user,
-            rider_id=rider_id)
-        return entity.create_location(data)
+    # @rider_required
+    # def post(self, rider_id):
+    #     """上传位置"""
+    #     data = validate_request(RiderLocationSchema, request.get_json())
+    #     entity = RiderLocationEntity(
+    #         current_user=current_user,
+    #         rider_id=rider_id)
+    #     return entity.create_location(data)
 
-    @rider_required
-    def get(self, rider_id):
-        """获取最新位置"""
-        entity = RiderLocationEntity(
-            current_user=current_user,
-            rider_id=rider_id)
-        return entity.get_latest_location()
+    # @rider_required
+    # def get(self, rider_id):
+    #     """获取最新位置"""
+    #     entity = RiderLocationEntity(
+    #         current_user=current_user,
+    #         rider_id=rider_id)
+    #     return entity.get_latest_location()
 
 
 class RiderLocationHistoryResource(Resource):

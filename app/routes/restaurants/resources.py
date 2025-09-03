@@ -323,7 +323,7 @@ class DeliveryPolygonResource(Resource):
             current_user=current_user,
             polygon_id=polygon_id
         )
-        return entity.get_polygon()
+        return entity.get_polygon(polygon_id)
 
     @restaurant_required
     def delete(self, polygon_id):
@@ -331,7 +331,7 @@ class DeliveryPolygonResource(Resource):
             current_user=current_user,
             polygon_id=polygon_id
         )
-        return entity.delete_polygon()
+        return entity.delete_polygon(polygon_id)
 
 class OperatingHoursListResource(Resource):
     endpoint = 'api.OperatingHoursListResource'
@@ -428,7 +428,7 @@ class RestaurantStatisticsListResource(Resource):
             restaurant_id=restaurant_id
         )
 
-        return entity.get_statistics()
+        return entity.get_statistics(restaurant_id)
 
 class RestaurantStatisticsResource(Resource):
     """
@@ -443,3 +443,4 @@ class RestaurantStatisticsResource(Resource):
             restaurant_id=restaurant_id
         )
         return entity.get_statistics(date)
+

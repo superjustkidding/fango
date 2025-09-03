@@ -54,7 +54,7 @@ class OrderResource(Resource):
         entity = OrderEntity(current_user=current_user)
         return entity.get_order(order_id)
 
-    @user_required
+    @admin_required
     def put(self, order_id):
         """更新订单状态"""
         data = validate_request(OrderUpdateSchemas, request.get_json())
@@ -99,6 +99,7 @@ class OrderAssignmentResource(Resource):
 
     # 管理员权限可以手动分配骑手，程序可以自动分派骑手
     @admin_required
+    @restaurant_required  # 商家自行配送
     def post(self, order_id):
         """分配订单给骑手（手动或自动）"""
         data = request.get_json() or {}
@@ -108,9 +109,9 @@ class OrderAssignmentResource(Resource):
             data = validate_request(OrderAssignmentSchema, data)
             entity = OrderEntity(current_user=current_user)
             return entity.assign_rider(order_id, data['rider_id'])
-        else:
-            entity = OrderEntity(current_user=current_user)
-            return entity.auto_assign_rider(order_id)
+        # else:
+        #     entity = OrderEntity(current_user=current_user)
+        #     return entity.auto_assign_rider(order_id)
 
 
 class OrderItemsResource(Resource):

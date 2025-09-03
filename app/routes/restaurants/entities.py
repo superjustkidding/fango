@@ -765,3 +765,4 @@ class RestaurantStatisticsEntity:
             raise BusinessValidationError("Statistics not found", ECode.NOTFOUND)
 
         return stat.to_dict(), ECode.SUCC
+

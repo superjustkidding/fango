@@ -147,4 +147,3 @@ class ItemReview(BaseModel):
 
     def __repr__(self):
         return f'<ItemReview for {self.menu_item_id}>'
-

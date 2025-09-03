@@ -66,6 +66,7 @@ class OrderEntity:
         db.session.add(status_history)
 
         db.session.commit()
+        # 创建订单之后， 订单推送商家
 
         # 发布订单创建事件
         redis_client.publish('new_orders', json.dumps(order.to_dict()))
@@ -229,7 +230,7 @@ class OrderEntity:
         return nearby_riders[:limit]
 
     def get_rider_order_loads(self, rider_ids):
-        """获取骑手的当前订单负载（正在进行的订单数量）"""
+        """获取骑手的当前订单量（正在进行的订单数量）"""
         loads = {}
 
         for rider_id in rider_ids:

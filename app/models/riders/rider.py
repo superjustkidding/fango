@@ -24,7 +24,9 @@ class Rider(BaseModel, UserMixin):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     avatar = db.Column(db.String(200))  # 头像URL
-    last_login = db.Column(db.DateTime)  # 最后登录时间
+    start_login = db.Column(db.DateTime)  # 最后登录时间'
+    last_login = db.Column(db.DateTime)  # 最后登录时间'
+    worker_time = db.Column(db.DateTime)  # 骑手总的工作时长
 
     # 配送信息
     vehicle_type = db.Column(db.String(50))  # 交通工具类型
