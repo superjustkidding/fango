@@ -538,18 +538,12 @@ class DeliveryPolygonListEntity:
 
         polygon = DeliveryPolygon(
             coordinates=data["coordinates"],
-            zone_id=data["zone_id"]
+            zone_id=self.zone_id
         )
         db.session.add(polygon)
         db.session.commit()
         return polygon.to_dict(), ECode.SUCC
 
-    def list_polygons_by_zone(self):
-        """
-        获取某个配送区域下的所有多边形
-        """
-        polygons = DeliveryPolygon.query.filter_by(zone_id=self.zone_id).all()
-        return polygons.to_dict(), ECode.SUCC
 
 class DeliveryPolygonEntity:
     def __init__(self, current_user, polygon_id):

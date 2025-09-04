@@ -12,7 +12,7 @@ from app.schemas.restaurants.restaurant_schema import Restaurant, RestaurantLogi
     MenuOptionSchema, DeliveryZoneSchema, OperatingHoursSchema, UpdateOperatingHoursSchema, PromotionSchema, \
     UpdatePromotionSchema, DeliveryPolygonCreateSchema
 from app.utils.validation import validate_request
-from app.routes.jwt import current_user, restaurant_required
+from app.routes.jwt import current_user, restaurant_required, admin_required
 
 
 class RestaurantListResource(Resource):
@@ -23,7 +23,6 @@ class RestaurantListResource(Resource):
         entity = RestaurantEntity(current_user=current_user)
         return entity.get_restaurants(**request.args)
 
-    @restaurant_required
     def post(self):
         data = validate_request(Restaurant, request.get_json())
         entity = RestaurantEntity(current_user=current_user)
@@ -290,9 +289,8 @@ class DeliveryPolygonListResource(Resource):
     """
     多边形集合接口
     - POST: 创建多边形
-    - GET: 获取某配送区域下的所有多边形
     """
-    @restaurant_required
+    @admin_required
     def post(self, zone_id):
         # 校验请求参数
         data = validate_request(DeliveryPolygonCreateSchema, request.get_json())
@@ -302,13 +300,6 @@ class DeliveryPolygonListResource(Resource):
         )
         return entity.create_polygon(data)
 
-    @restaurant_required
-    def get(self, zone_id):
-        entity = DeliveryPolygonListEntity(
-            current_user=current_user,
-            zone_id=zone_id
-        )
-        return entity.list_polygons_by_zone()
 
 class DeliveryPolygonResource(Resource):
     endpoint = 'api.DeliveryPolygonResource'
@@ -325,7 +316,7 @@ class DeliveryPolygonResource(Resource):
         )
         return entity.get_polygon(polygon_id)
 
-    @restaurant_required
+    @admin_required
     def delete(self, polygon_id):
         entity = DeliveryPolygonEntity(
             current_user=current_user,

@@ -19,17 +19,15 @@ class RiderSchema(Schema):
 class UpdateRiderSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1, max=50))
     phone = fields.Str(required=True, validate=validate.Length(min=10, max=20))
-    email = fields.Email(required=True, validate=validate.Length(max=100))
     password_hash = fields.Str(required=True, validate=validate.Length(min=6))
     avatar = fields.Str(allow_none=True, validate=validate.Length(max=200))
     vehicle_type = fields.Str(allow_none=True, validate=validate.Length(max=50))
     license_plate = fields.Str(allow_none=True, validate=validate.Length(max=20))
-    delivery_radius = fields.Int(allow_none=True, validate=validate.Range(min=0))
-    is_available = fields.Bool(missing=True)
-    is_online = fields.Bool(missing=True)
+
+
 class RiderLoginSchema(Schema):
     email = fields.Email(required=True)
-    password = fields.Str(
+    password_hash = fields.Str(
         required=True,
         validate=validate.Length(min=6, max=20),
         error_messages={"required": "密码不能为空"}
@@ -59,7 +57,4 @@ class RiderLocationSchema(Schema):
 
 
 
-class GetNearbySchema(Schema):
-    lat = fields.Float(required=True)
-    lon = fields.Float(required=True)
-    radius = fields.Float()
+

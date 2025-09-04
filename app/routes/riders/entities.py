@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import socketio
 from flask import json
 from werkzeug.security import generate_password_hash
@@ -80,12 +80,8 @@ class RiderEntity:
             raise BusinessValidationError("账户已被禁用", ECode.FORBID)
 
         # 4. 验证密码
-        if not rider.check_password(data['password']):
+        if not rider.check_password(data['password_hash']):
             raise BusinessValidationError("邮箱或密码错误", ECode.AUTH)
-
-        # 5. 更新最后登录时间
-        rider.last_login = datetime.utcnow()
-        db.session.commit()
 
         # 6. 创建访问令牌
         access_token = create_auth_token(rider)
@@ -102,6 +98,34 @@ class RiderEntity:
                 'is_available': rider.is_available,
             }
         }, ECode.SUCC
+
+    def rider_logout(self):
+        rider = Rider.query.get(self.current_user.id)
+        if not rider:
+            raise BusinessValidationError('Rider not found', ECode.FORBID)
+
+        rider.is_online = False
+        rider.is_available = False
+        rider.last_login = datetime.now(timezone.utc)
+        db.session.commit()
+        return {'msg':'logout successfully'}, ECode.SUCC
+
+    def start_taking_orders(self):
+        rider = Rider.query.get(self.current_user.id)
+        if not rider:
+            raise BusinessValidationError('Rider not found', ECode.FORBID)
+        rider.is_online = True
+        rider.is_available = True
+        db.session.commit()
+        return rider.to_dict(), ECode.SUCC
+
+    def stop_taking_orders(self):
+        rider = Rider.query.get(self.current_user.id)
+        if not rider:
+            raise BusinessValidationError('Rider not found', ECode.FORBID)
+        rider.is_available = False
+        db.session.commit()
+        return rider.to_dict(), ECode.SUCC
 
 
 class RiderItemEntity:
@@ -130,36 +154,15 @@ class RiderItemEntity:
         if 'phone' in data:
             self.rider.phone = data['phone']
 
-        if 'email' in data:
-            if data['email'] != self.rider.email and Rider.query.filter_by(email=data['email']).first():
-                raise BusinessValidationError('email already exists', ECode.CONFLICT)
-            self.rider.email = data['email']
+        if 'password_hash' in data:
+
+            self.rider.password_hash = generate_password_hash(data['password'])
 
         if 'vehicle_type' in data:
             self.rider.vehicle_type = data['vehicle_type']
 
         if 'license_plate' in data:
             self.rider.license_plate = data['license_plate']
-
-        if 'delivery_radius' in data:
-            if data['delivery_radius'] is not None and data['delivery_radius'] < 0:
-                raise BusinessValidationError('Delivery radius cannot be negative', ECode.ERROR)
-            self.rider.delivery_radius = data['delivery_radius']
-
-            # 更新状态信息
-        if 'is_online' in data:
-            # 只有管理员可以强制修改在线状态
-            if self.current_user.is_admin or self.current_user.id == self.rider_id:
-                self.rider.is_online = data['is_online']
-            else:
-                raise BusinessValidationError("Only admin or rider can change online status", ECode.FORBID)
-
-        if 'is_available' in data:
-            # 只有管理员或骑手本人可以修改可用状态
-            if self.current_user.is_admin or self.current_user.id == self.rider_id:
-                self.rider.is_available = data['is_available']
-            else:
-                raise BusinessValidationError("Only admin or rider can change availability", ECode.FORBID)
 
         db.session.commit()
         return self.rider.to_dict(), ECode.SUCC
@@ -179,64 +182,6 @@ class RiderLocationEntity:
         self.rider = Rider.query.filter_by(id=rider_id).first()
         if not self.rider:
             raise BusinessValidationError("Rider not found", ECode.NOTFOUND)
-
-    def create_location(self, data):
-        """骑手上传实时位置"""
-        latitude = data["latitude"]
-        longitude = data["longitude"]
-        accuracy = data.get("accuracy")
-        speed = data.get("speed")
-        order_id = data.get("order_id")
-
-        # 权限校验：只能本人或管理员上传
-        if self.current_user.id != self.rider_id or not self.current_user.is_admin:
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
-
-        # 1. 存入数据库
-        location = RiderLocation(
-            rider_id=self.rider_id,
-            latitude=latitude,
-            longitude=longitude,
-            accuracy=accuracy,
-            speed=speed,
-            timestamp=datetime.utcnow(),
-        )
-        db.session.add(location)
-        db.session.commit()
-
-        location_data = location.to_dict()
-
-        # 2. 存入 Redis，用于快速查询 & 历史缓存
-        redis_client.zadd(
-            f"rider_locations:{self.rider_id}",
-            {f"{datetime.utcnow().timestamp()}": json.dumps(location_data)}
-        )
-        redis_client.zremrangebyrank(f"rider_locations:{self.rider_id}", 0, -101)
-
-        # 3. 发布到 Redis Channel
-        redis_client.publish("rider_locations", json.dumps(location_data))
-
-        # 4. WebSocket 广播给订单房间（用户/餐馆监听）
-        if order_id:
-            socketio.emit("rider_location_update", location_data, room=f"order_{order_id}")
-
-        return location_data, ECode.SUCC
-
-    def get_latest_location(self):
-        """获取骑手最新位置"""
-        # 先查 Redis，没命中再查 DB
-        latest = redis_client.zrevrange(f"rider_locations:{self.rider_id}", 0, 0)
-        if latest:
-            return json.loads(latest[0]), ECode.SUCC
-
-        location = (
-            RiderLocation.query.filter_by(rider_id=self.rider_id)
-            .order_by(RiderLocation.timestamp.desc())
-            .first()
-        )
-        if not location:
-            raise BusinessValidationError("No location found", ECode.NOTFOUND)
-        return location.to_dict(), ECode.SUCC
 
     def get_location_history(self, limit=50, order_id=None):
         """获取骑手历史位置"""
@@ -262,40 +207,7 @@ class RiderLocationEntity:
         return None
 
 
-class NearbyRidersEntity:
-    def __init__(self, current_user):
-        self.current_user = current_user
-        if not self.current_user.is_admin:
-            raise BusinessValidationError("Only admin can query nearby riders", ECode.FORBID)
-
-    def get_nearby_riders(self, lat, lon, radius=2000):
-        """管理员获取附近骑手"""
-        nearby = []
-
-        # 遍历所有在线骑手（Redis 里取最新位置）
-        online_riders = Rider.query.filter_by(is_online=True).all()
-        for rider in online_riders:
-            latest = redis_client.zrevrange(f"rider_locations:{rider.id}", 0, 0)
-            if not latest:
-                continue
-            loc = json.loads(latest[0])
-            dist = haversine(lat, lon, loc["latitude"], loc["longitude"])
-            if dist <= radius:
-                loc.update({"distance": dist})
-                nearby.append(loc)
-
-        return nearby, ECode.SUCC
 
 
-class RiderAssignmentEntity:
-    """骑手订单分配业务逻辑"""
 
-    def __init__(self, current_user, order_id, rider_id=None):
-        self.current_user = current_user
-        self.order_id = order_id
-        self.rider_id = rider_id
-
-        self.order = RiderAssignment.query.get(order_id)
-        if not self.order:
-            raise BusinessValidationError("Order not found", ECode.NOTFOUND)
 

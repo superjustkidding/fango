@@ -15,7 +15,7 @@ def register_user_routes(api):
     api.add_resource(RegisterResource, '/user/register')  # 用户注册
     api.add_resource(LoginResource, '/user/login')   # 用户登录
     api.add_resource(LogoutResource, '/user/logout/<int:user_id>')  # 用户注销
-    api.add_resource(LoginResource, '/user/login')  # 配送位置增加
+    # api.add_resource(LoginResource, '/user/login')  # 配送位置增加
     # 返回需要保护的端点列表
     return [
         'api.UserListResource',

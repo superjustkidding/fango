@@ -4,7 +4,7 @@
 # @Email   : superjustkidding@gmail.com
 # @File    : restaurants.py
 # @Software: PyCharm
-
+from sqlalchemy import JSON
 
 # ==============================
 # 餐厅相关模型
@@ -224,7 +224,7 @@ class DeliveryPolygon(BaseModel):
     __tablename__ = 'delivery_polygons'
 
     # 坐标信息
-    coordinates = db.Column(db.Text, nullable=False)  # JSON格式坐标点
+    coordinates = db.Column(JSON, nullable=False)  # JSON格式坐标点
 
     # 外键
     zone_id = db.Column(db.Integer, db.ForeignKey('delivery_zones.id'), nullable=False)

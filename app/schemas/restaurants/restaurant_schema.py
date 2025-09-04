@@ -93,7 +93,6 @@ class DeliveryPolygonCreateSchema(Schema):
     )
 
 
-
 class OperatingHoursSchema(Schema):
     day_of_week = fields.Int(required=True, validate=lambda x: 0 <= x <= 6)
     open_time = fields.Time(required=True)
