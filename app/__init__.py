@@ -106,7 +106,6 @@ def create_app():
     from .routes import api
     api.init_app(app)
 
-
     # 注册错误处理器
     from .utils.validation import register_error_handlers
     register_error_handlers(app)
