@@ -5,7 +5,8 @@
 # @File    : __init__.py.py
 # @Software: PyCharm
 
-from .resources import UserListResource, UserResource, LoginResource, LogoutResource, RegisterResource
+from .resources import UserListResource, UserResource, LoginResource, LogoutResource, RegisterResource, \
+    UserAddressResource, UserAddressListResource
 
 
 def register_user_routes(api):
@@ -15,7 +16,8 @@ def register_user_routes(api):
     api.add_resource(RegisterResource, '/user/register')  # 用户注册
     api.add_resource(LoginResource, '/user/login')   # 用户登录
     api.add_resource(LogoutResource, '/user/logout/<int:user_id>')  # 用户注销
-    # api.add_resource(LoginResource, '/user/login')  # 配送位置增加
+    api.add_resource(UserAddressListResource, '/user/address/<int:user_id>')  # 配送位置增加
+    api.add_resource(UserAddressResource, '/address/<int:address_id>')
     # 返回需要保护的端点列表
     return [
         'api.UserListResource',
@@ -23,4 +25,6 @@ def register_user_routes(api):
         'api.LoginResource',
         'api.LogoutResource',
         'api.RegisterResource',
+        'api.UserAddressResource',
+        'api.UserAddressListResource',
     ]

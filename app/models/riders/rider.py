@@ -25,7 +25,7 @@ class Rider(BaseModel, UserMixin):
     password_hash = db.Column(db.String(128), nullable=False)
     avatar = db.Column(db.String(200))  # 头像URL
     # start_login = db.Column(db.DateTime)  # 最后登录时间'
-    last_login = db.Column(db.DateTime)  # 最后登录时间'
+    last_login = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)  # 最后登录时间'
     # worker_time = db.Column(db.DateTime)  # 骑手总的工作时长
 
     # 配送信息

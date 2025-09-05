@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-import math
-from datetime import datetime, timedelta, timezone
-import socketio
+from datetime import datetime,  timezone
 from flask import json
 from werkzeug.security import generate_password_hash
 from app import db
-from app.models import Rider, RiderLocation, RiderAssignment
+from app.models import Rider, RiderLocation
 from app.routes.jwt import create_auth_token
-from app.utils.geo import haversine
 from app.utils.validation import BusinessValidationError
-from app.utils.websocket import  redis_client, TASK_ASSIGNMENT_CHANNEL
+from app.utils.websocket import redis_client
 from lib.ecode import ECode
 
 
@@ -174,7 +171,7 @@ class RiderItemEntity:
         db.session.commit()
         return {'message': 'deleted successfully'}, ECode.SUCC
 
-
+# 有错误没有修改。。。。
 class RiderLocationEntity:
     def __init__(self, current_user, rider_id):
         self.current_user = current_user

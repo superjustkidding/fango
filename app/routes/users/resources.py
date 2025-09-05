@@ -7,8 +7,8 @@
 
 from flask_restful import Resource
 from flask import request
-from .entities import UserEntity, UserItemEntity
-from app.schemas.user.user import UserCreateSchema, UserUpdateSchema, LoginSchema
+from .entities import UserEntity, UserItemEntity, UserAddressEntity, UserAddressListEntity
+from app.schemas.user.user import UserCreateSchema, UserUpdateSchema, LoginSchema, UserAddressSchema
 from app.utils.validation import validate_request, BusinessValidationError
 from app.routes.jwt import current_user, admin_required, user_required
 from app.routes.logger import logger
@@ -91,7 +91,57 @@ class RegisterResource(Resource):
 
     def post(self):
         """用户注册"""
-        data = validate_request(LoginSchema, request.get_json())
+        data = validate_request(UserCreateSchema, request.get_json())
         entity = UserEntity()
         return entity.register(data)
+
+class UserAddressListResource(Resource):
+    endpoint = 'api.UserAddressResource'
+
+    @user_required
+    def post(self, user_id):
+        data = validate_request(UserAddressSchema, request.get_json())
+        entity = UserAddressListEntity(
+            current_user=current_user,
+            user_id=user_id
+        )
+        return entity.create_address(data)
+
+    @user_required
+    def get(self, user_id):
+        entity = UserAddressListEntity(
+            current_user=current_user,
+            user_id=user_id
+        )
+        return entity.get_address_list()
+
+
+class UserAddressResource(Resource):
+    endpoint = 'api.UserAddressListResource'
+
+    @user_required
+    def get(self, address_id):
+        entity = UserAddressEntity(
+            current_user=current_user,
+            address_id=address_id
+        )
+        return entity.get_address()
+
+    @user_required
+    def put(self, address_id):
+        data = validate_request(UserAddressSchema, request.get_json())
+        entity = UserAddressEntity(
+            current_user=current_user,
+            address_id=address_id
+        )
+        return entity.update_address(data)
+
+    @user_required
+    def delete(self, address_id):
+        entity = UserAddressEntity(
+            current_user=current_user,
+            address_id=address_id
+        )
+        return entity.delete_address()
+
 

@@ -74,6 +74,17 @@ class UserAddress(BaseModel):
     def __repr__(self):
         return f'<UserAddress {self.label} for {self.user_id}>'
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "label": self.label,
+            "recipient": self.recipient,
+            "phone": self.phone,
+            "address": self.address,
+            'details': self.details,
+            'is_default': self.is_default,
+        }
+
 
 class UserCoupon(BaseModel):
     """用户拥有的优惠券"""
