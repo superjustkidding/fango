@@ -169,7 +169,7 @@ class MenuOptionGroupListResource(Resource):
             current_user=current_user,
             menu_item_id=menuitem_id
         )
-        return entity.get_menu_group()
+        return entity.get_menu_group
 
     @restaurant_required
     def post(self, menuitem_id):

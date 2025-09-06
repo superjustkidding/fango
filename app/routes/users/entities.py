@@ -38,7 +38,7 @@ class UserEntity:
 
     def create_user(self, data):
         # 只有管理员可以创建用户
-        if self.current_user and not self.current_user.is_admin:
+        if not self.current_user and not self.current_user.is_admin:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         # 检查用户名是否已存在

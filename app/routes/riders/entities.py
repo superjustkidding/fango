@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash
 from app import db
 from app.models import Rider, RiderLocation
 from app.routes.jwt import create_auth_token
+from app.routes.logger import logger
 from app.utils.validation import BusinessValidationError
 from app.utils.websocket import redis_client
 from lib.ecode import ECode
@@ -16,9 +17,11 @@ class RiderEntity:
 
     def create_rider(self, data):
         if Rider.query.filter_by(name=data['name']).first():
+            logger.warning('Rider already exists')
             raise BusinessValidationError('name already exists', ECode.CONFLICT)
 
         if Rider.query.filter_by(email=data['email']).first():
+            logger.warning('Eamil already exists')
             raise BusinessValidationError('email already exists', ECode.CONFLICT)
 
         rider = Rider(
@@ -34,6 +37,7 @@ class RiderEntity:
          )
         db.session.add(rider)
         db.session.commit()
+        logger.info(f'Created rider {rider.name}')
         return rider.to_dict(), ECode.SUCC
 
     """获取全部骑手（仅管理员）"""
@@ -41,6 +45,7 @@ class RiderEntity:
     def get_all_riders(self, **filters):
         # 权限检查 - 只有管理员可以访问
         if not self.current_user or not self.current_user.is_admin:
+            logger.warning(f"未授权访问尝试: 用户 {getattr(self.current_user, 'id', 'unknown')} 尝试访问骑手列表")
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
         query = Rider.query.filter_by(deleted=False)
@@ -62,6 +67,7 @@ class RiderEntity:
         query = query.order_by(Rider.created_at.desc())
 
         riders = query.all()
+        logger.info(f"管理员 {self.current_user.id} 成功查询骑手列表，找到 {len(riders)} 条记录")
         return [r.to_dict() for r in riders], ECode.SUCC
 
     def rider_login(self, data):
@@ -100,10 +106,9 @@ class RiderEntity:
         rider = Rider.query.get(self.current_user.id)
         if not rider:
             raise BusinessValidationError('Rider not found', ECode.FORBID)
-
         rider.is_online = False
         rider.is_available = False
-        rider.last_login = datetime.now(timezone.utc)
+        rider.last_login = datetime.now()
         db.session.commit()
         return {'msg':'logout successfully'}, ECode.SUCC
 
