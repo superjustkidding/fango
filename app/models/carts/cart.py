@@ -42,52 +42,10 @@ class Cart(BaseModel):
     def total_quantity(self):
         return sum(item.quantity for item in self.items)
 
-    def add_item(self, product_id, quantity, price, product_name):
-        """添加商品到购物车"""
-        existing_item = next((item for item in self.items if item.product_id == product_id), None)
-
-        if existing_item:
-            existing_item.quantity += quantity
-            existing_item.price = price  # 更新价格
-        else:
-            new_item = CartItem(
-                cart_id=self.id,
-                product_id=product_id,
-                product_name=product_name,
-                quantity=quantity,
-                price=price
-            )
-            db.session.add(new_item)
-
-        self.updated_at = datetime.utcnow()
-        db.session.commit()
-
-    def remove_item(self, product_id):
-        """从购物车移除商品"""
-        item_to_remove = next((item for item in self.items if item.product_id == product_id), None)
-
-        if item_to_remove:
-            db.session.delete(item_to_remove)
-            self.updated_at = datetime.utcnow()
-            db.session.commit()
-
-    def update_item_quantity(self, product_id, quantity):
-        """更新商品数量"""
-        item = next((item for item in self.items if item.product_id == product_id), None)
-
-        if item:
-            if quantity <= 0:
-                self.remove_item(product_id)
-            else:
-                item.quantity = quantity
-                self.updated_at = datetime.utcnow()
-                db.session.commit()
-
     def clear(self):
         """清空购物车"""
         for item in self.items:
             db.session.delete(item)
-        self.updated_at = datetime.utcnow()
         db.session.commit()
 
 

@@ -4,6 +4,7 @@
 # @Email   : superjustkidding@gmail.com
 # @File    : __init__.py.py
 # @Software: PyCharm
+from .carts import register_cart_routes
 from .orders import register_order_routes
 from .riders import register_rider_routes
 from .users import register_user_routes
@@ -32,5 +33,9 @@ def register_all_routes(api, all_protected_endpoints):
     # 订单路由
     order_protected = register_order_routes(api)
     all_protected_endpoints.extend(order_protected)
+
+    # 购物车路由
+    cart_protected = register_cart_routes(api)
+    all_protected_endpoints.extend(cart_protected)
 
     return all_protected_endpoints
