@@ -1,29 +1,23 @@
 from app import db
-from app.models.carts.cart import Cart, CartItem, Product
+from app.models.carts.cart import Cart, CartItem
 from app.routes.logger import logger
 from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
 
 
 class CartEntity:
-    def __init__(self, current_user, user_id, restaurant_id):
-        self.current_user = current_user
+    def __init__(self, user_id):
         self.user_id = user_id
-        self.restaurant_id = restaurant_id
-        self.cart = Cart.query.filter_by(user_id=self.user_id, restaurant_id=self.restaurant_id).first()
-        if not self.cart:
-            logger.warning("Cart not found for user_id=%s", self.user_id)
-            raise BusinessValidationError("Cart not found", ECode.NOTFOUND)
+        self.cart = Cart.query.filter_by(user_id=self.user_id).first()
 
     # 用户获取所有购物车
     def get_user_cart(self):
-        if not self.current_user:
-            logger.warning("Current user not found while fetching cart, user_id=%s", self.user_id)
-            raise BusinessValidationError("User not found", ECode.NOTFOUND)
-        if self.current_user.id != self.user_id:
-            logger.warning("User does not belong to current user", self.current_user.id, self.cart.id)
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
         cart = Cart.query.filter_by(user_id=self.user_id).all()
+        if not cart:
+            cart = Cart(user_id=self.user_id)
+            db.session.add(cart)
+            db.session.commit()
+            db.session.refresh(cart)
         return [c.to_dict() for c in cart], ECode.SUCC
 
     # 清空购物车
@@ -34,26 +28,20 @@ class CartEntity:
 
 
 class CartItemEntity:
-    def __init__(self, user_id, restaurant_id):
+    def __init__(self, user_id):
         self.user_id = user_id
-        self.restaurant_id = restaurant_id
-        self.cart = Cart.query.filter_by(user_id=self.user_id, restaurant_id=self.restaurant_id).first()
+        self.cart = Cart.query.filter_by(user_id=self.user_id).first()
 
         if not self.cart:
-            self.cart = Cart(user_id=user_id, restaurant_id=restaurant_id)
+            self.cart = Cart(user_id=user_id)
             db.session.add(self.cart)
             db.session.commit()
-            logger.info("Created new cart user_id=%s restaurant_id=%s", user_id, restaurant_id)
+            logger.info("Created new cart user_id=%s", user_id)
 
-    def add_item(self, product_id, quantity):
+    def add_item(self, product_id, quantity, price, product_name):
         """添加商品到购物车"""
         if quantity <= 0:
             raise ValueError("Quantity must be gather than 0", ECode.FORBID)
-        product = Product.query.get(product_id)
-        if not product:
-            raise BusinessValidationError("Product not found", ECode.NOTFOUND)
-        if product.stock < quantity:
-            raise BusinessValidationError("Not enough stock", ECode.CONFLICT)
 
         existing_item = next((item for item in self.cart.items if item.product_id == product_id), None)
 
@@ -62,60 +50,39 @@ class CartItemEntity:
         else:
             new_item = CartItem(
                 cart_id=self.cart.id,
-                product_id=product.id,
-                product_name=product.name,
+                product_id=product_id,
+                product_name=product_name,
                 quantity=quantity,
-                price=product.price
+                price=price
                 )
             db.session.add(new_item)
-        product.stock -= quantity
         db.session.commit()
         logger.info("Added new item product_id=%s", product_id)
         return self.cart.to_dict(), ECode.SUCC
 
 class CartItemListEntity:
-    def __init__(self, restaurant_id, product_id):
-        self.restaurant_id = restaurant_id
+    def __init__(self, product_id):
         self.product_id = product_id
-        self.cart = Cart.query.filter_by(restaurant_id=self.restaurant_id).first()
+        self.cart_item = CartItem.query.filter_by(product_id=product_id).first()
 
     def update_item_quantity(self, quantity):
         """更新商品数量"""
-        item = next((item for item in self.cart.items if item.product_id == self.product_id), None)
-
-        if not item:
-            logger.warning("Item not found for product_id=%s", self.product_id)
-            raise BusinessValidationError("Item not found", ECode.NOTFOUND)
-        product = Product.query.get(self.product_id)
-        if not product:
-            raise BusinessValidationError("Product not found", ECode.NOTFOUND)
-
-        diff = quantity - item.quantity
-        if diff <= 0:
-            if diff > 0 and product.stock < diff:
-                raise BusinessValidationError("Not enough stock", ECode.CONFLICT)
-
-        product.stock -= diff
+        if not self.cart_item:
+            raise BusinessValidationError("CartItem not found", ECode.FORBID)
         if quantity <= 0:
             return self.remove_item()
-        else:
-            item.quantity = quantity
+        self.cart_item.quantity = quantity
         db.session.commit()
-        logger.info("Updated item product_id=%s ,quantity=%s, cart_id=%s", self.product_id, quantity, self.cart.id)
-        return self.cart.to_dict(), ECode.SUCC
+        logger.info("Updated item product_id=%s ,quantity=%s", self.product_id, quantity)
+        return self.cart_item.to_dict(), ECode.SUCC
 
     def remove_item(self):
-        item = next((item for item in self.cart.items if item.product_id == self.product_id), None)
-        if not item:
-            raise BusinessValidationError("Item not found", ECode.NOTFOUND)
-
-        product = Product.query.get(self.product_id)
-        if product:
-            product.stock += item.quantity  # 归还库存
-        db.session.delete(item)
+        if not self.cart_item:
+            raise BusinessValidationError("CartItem not found", ECode.FORBID)
+        db.session.delete(self.cart_item)
         db.session.commit()
-        logger.info("Removed product_id=%s from cart_id=%s", self.product_id, self.cart.id)
-        return self.cart.to_dict(), ECode.SUCC
+        logger.info("Removed product_id=%s ", self.product_id)
+        return self.cart_item.to_dict(), ECode.SUCC
 
 
 

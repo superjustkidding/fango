@@ -7,7 +7,6 @@
 
 # app/models/cart/cart.py
 from app import db
-from datetime import datetime
 from app.models import BaseModel
 
 # 购物车模型
@@ -44,10 +43,7 @@ class Cart(BaseModel):
 
     def clear(self):
         """清空购物车"""
-        for item in list(self.items):
-            product = Product.query.get(item.product_id)
-            if product:
-                product.stock += item.quantity
+        for item in self.items:
             db.session.delete(item)
         db.session.commit()
         db.session.refresh(self)
@@ -58,12 +54,10 @@ class CartItem(BaseModel):
     __tablename__ = 'cart_items'
 
     cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id', ondelete="CASCADE"), nullable=False)  # 商品ID
+    product_id = db.Column(db.Integer, nullable=False)  # 商品ID=菜品ID
     product_name = db.Column(db.String(200), nullable=False)  # 商品名称
     quantity = db.Column(db.Integer, default=1, nullable=False)
     price = db.Column(db.Float, nullable=False)  # 单价
-
-    product = db.relationship('Product', backref='cart_items')
 
     def to_dict(self):
         return {
@@ -82,21 +76,5 @@ class CartItem(BaseModel):
         return self.quantity * self.price
 
 
-class Product(BaseModel):
-    __tablename__ = 'products'
-
-    name = db.Column(db.String(200), nullable=False, unique=True)
-    price = db.Column(db.Float, nullable=False)
-    stock = db.Column(db.Integer, default=0, nullable=False)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'price': self.price,
-            'stock': self.stock,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
-        }
 
 
