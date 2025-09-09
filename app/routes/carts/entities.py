@@ -1,5 +1,5 @@
 from app import db
-from app.models.carts.cart import Cart, CartItem
+from app.models.carts.cart import Cart, CartItem, Product
 from app.routes.logger import logger
 from app.utils.validation import BusinessValidationError
 from lib.ecode import ECode
@@ -43,30 +43,33 @@ class CartItemEntity:
             self.cart = Cart(user_id=user_id, restaurant_id=restaurant_id)
             db.session.add(self.cart)
             db.session.commit()
+            logger.info("Created new cart user_id=%s restaurant_id=%s", user_id, restaurant_id)
 
-    def add_item(self, product_id, quantity, price, product_name):
+    def add_item(self, product_id, quantity):
         """添加商品到购物车"""
         if quantity <= 0:
             raise ValueError("Quantity must be gather than 0", ECode.FORBID)
-        if self.user_id != self.cart.user_id:
-            logger.warning("User does not belong to cart, user_id=%s", self.user_id)
-            raise BusinessValidationError("Permission denied", ECode.FORBID)
+        product = Product.query.get(product_id)
+        if not product:
+            raise BusinessValidationError("Product not found", ECode.NOTFOUND)
+        if product.stock < quantity:
+            raise BusinessValidationError("Not enough stock", ECode.CONFLICT)
 
         existing_item = next((item for item in self.cart.items if item.product_id == product_id), None)
 
         if existing_item:
             existing_item.quantity += quantity
-            existing_item.price = price  # 更新价格
         else:
             new_item = CartItem(
                 cart_id=self.cart.id,
-                product_id=product_id,
-                product_name=product_name,
+                product_id=product.id,
+                product_name=product.name,
                 quantity=quantity,
-                price=price
+                price=product.price
                 )
             db.session.add(new_item)
-            db.session.commit()
+        product.stock -= quantity
+        db.session.commit()
         logger.info("Added new item product_id=%s", product_id)
         return self.cart.to_dict(), ECode.SUCC
 
@@ -83,25 +86,36 @@ class CartItemListEntity:
         if not item:
             logger.warning("Item not found for product_id=%s", self.product_id)
             raise BusinessValidationError("Item not found", ECode.NOTFOUND)
+        product = Product.query.get(self.product_id)
+        if not product:
+            raise BusinessValidationError("Product not found", ECode.NOTFOUND)
 
+        diff = quantity - item.quantity
+        if diff <= 0:
+            if diff > 0 and product.stock < diff:
+                raise BusinessValidationError("Not enough stock", ECode.CONFLICT)
+
+        product.stock -= diff
         if quantity <= 0:
-            logger.info("Quantity <= 0 removing product_id=%s from cart_id=%s", self.product_id, self.cart.id)
-            return self.remove_item(self.product_id), ECode.SUCC
-
-        item.quantity = quantity
-        item.price = item.price * quantity
+            return self.remove_item()
+        else:
+            item.quantity = quantity
         db.session.commit()
+        logger.info("Updated item product_id=%s ,quantity=%s, cart_id=%s", self.product_id, quantity, self.cart.id)
         return self.cart.to_dict(), ECode.SUCC
 
     def remove_item(self):
         item = next((item for item in self.cart.items if item.product_id == self.product_id), None)
-        if item:
-            db.session.delete(item)
-            db.session.commit()
-        else:
+        if not item:
             raise BusinessValidationError("Item not found", ECode.NOTFOUND)
-        logger.info("Removed item product_id=%s from cart_id=%s", self.product_id, self.cart.id)
-        return {'msg':'removed successfully'}, ECode.SUCC
+
+        product = Product.query.get(self.product_id)
+        if product:
+            product.stock += item.quantity  # 归还库存
+        db.session.delete(item)
+        db.session.commit()
+        logger.info("Removed product_id=%s from cart_id=%s", self.product_id, self.cart.id)
+        return self.cart.to_dict(), ECode.SUCC
 
 
 

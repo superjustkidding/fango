@@ -419,7 +419,7 @@ class RestaurantStatisticsListResource(Resource):
             restaurant_id=restaurant_id
         )
 
-        return entity.get_statistics(restaurant_id)
+        return entity.list_statistics()
 
 class RestaurantStatisticsResource(Resource):
     """

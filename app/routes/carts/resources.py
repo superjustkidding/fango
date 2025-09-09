@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource
 
 from app.routes.carts.entities import CartEntity, CartItemEntity, CartItemListEntity
-from app.routes.jwt import current_user, admin_required, user_required
+from app.routes.jwt import current_user, user_required
 from app.schemas.carts.cart_schema import CartItemSchema, UpdateCartItemSchema
 from app.utils.validation import validate_request
 
@@ -42,8 +42,7 @@ class CartItemResource(Resource):
         return entity.add_item(
             product_id=data["product_id"],
             quantity=data["quantity"],
-            price=data["price"],
-            product_name=data["product_name"])
+           )
 
 
 class CartItemListResource(Resource):
