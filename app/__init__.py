@@ -3,7 +3,9 @@ import os
 import logging
 import click
 import atexit
+import json
 
+from datetime import datetime
 from flask import Flask, current_app, request
 from flask_sqlalchemy import SQLAlchemy
 from flask.cli import with_appcontext
@@ -110,6 +112,10 @@ def create_app():
     from .utils.validation import register_error_handlers
     register_error_handlers(app)
 
+    # 初始化 Redis 同步服务
+    from extensions.redis_sync import init_redis_sync
+    init_redis_sync(app)  # 不再需要传递db实例  # 传递应用实例给 Redis 同步模块
+
     # 添加请求日志中间件
     @app.before_request
     def log_request_info():
@@ -171,34 +177,94 @@ def create_app():
     # 添加自定义 CLI 命令
     @app.cli.command("run-with-websocket")
     @click.option("--host", default="0.0.0.0", help="Host to bind to")
-    @click.option("--port", default=5000, help="Port to bind to")
+    @click.option("--port", default=8000, help="Port to bind to")
     @click.option("--debug", is_flag=True, help="Run in debug mode")
     @with_appcontext
     def run_with_websocket(host, port, debug):
         """Run the application with WebSocket support"""
         try:
-            # 导入必要的模块
-            from flask_socketio import SocketIO
-            from extensions.redis_sync import start_sync_service, stop_sync_service
+            from flask_socketio import SocketIO, Namespace
+            from extensions.redis_sync import get_redis_client
 
             # 初始化 SocketIO
-            socketio = SocketIO()
-            socketio.init_app(app)
+            socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
-            # 启动 Redis 同步服务
-            logger.info("Starting Redis sync service...")
-            start_sync_service()
+            # 定义两个通道/命名空间
+            class RiderChannel(Namespace):
+                def on_connect(self):
+                    app.logger.info("Client connected to RiderChannel")
+                    self.emit('message', {'data': 'Connected to RiderChannel'})
 
-            # 注册退出时的清理函数
-            atexit.register(stop_sync_service)
+                def on_disconnect(self):
+                    app.logger.info("Client disconnected from RiderChannel")
 
-            # 设置调试模式
-            # if debug:
-            #     os.environ["DEBUG"] = "true"
-            #     app.debug = True
+                def on_message(self, data):
+                    app.logger.info(f"Message received on RiderChannel: {data}")
+                    self.emit('response', {'data': 'Message received onRiderChannel'})
+
+                def on_location_update(self, data):
+                    """处理骑手位置更新"""
+                    try:
+                        app.logger.info(f"Location update received: {data}")
+
+                        # 获取Redis客户端
+                        redis_client = get_redis_client()
+
+                        if redis_client is None:
+                            app.logger.error("Redis client not available")
+                            return
+
+                        # 验证数据
+                        rider_id = data.get('rider_id')
+                        latitude = data.get('latitude')
+                        longitude = data.get('longitude')
+
+                        if not all([rider_id, latitude, longitude]):
+                            app.logger.error("Invalid location data: missing required fields")
+                            self.emit('error', {'message': 'Missing required fields: rider_id, latitude, longitude'})
+                            return
+
+                        # 准备位置数据
+                        location_data = {
+                            'rider_id': rider_id,
+                            'latitude': latitude,
+                            'longitude': longitude,
+                            'accuracy': data.get('accuracy'),
+                            'speed': data.get('speed'),
+                            'timestamp': datetime.now().isoformat()
+                        }
+
+                        # 以骑手ID为key存储到Redis
+                        rider_key = f"rider:{rider_id}"
+                        new_len = redis_client.rpush(rider_key, json.dumps(location_data))
+                        app.logger.info(f"Location appended for rider {rider_id}, total records: {new_len}")
+
+                        app.logger.info(f"Location updated for rider {rider_id}")
+                        self.emit('location_updated', {'success': True, 'rider_id': rider_id})
+
+                    except Exception as e:
+                        app.logger.error(f"Error processing location update: {e}")
+                        self.emit('error', {'message': f'Error processing location update: {str(e)}'})
+
+            class RestaurantChannel(Namespace):
+                def on_connect(self):
+                    app.logger.info("Client connected to RestaurantChannel")
+                    self.emit('message', {'data': 'Connected to RestaurantChannel'})
+
+                def on_disconnect(self):
+                    app.logger.info("Client disconnected from RestaurantChannel")
+
+                def on_message(self, data):
+                    app.logger.info(f"Message received on RestaurantChannel: {data}")
+                    self.emit('response', {'data': 'Message received on CRestaurantChannel'})
+
+            # 注册命名空间
+            socketio.on_namespace(RiderChannel('/rider/channel'))
+            socketio.on_namespace(RestaurantChannel('/restaurant/channel'))
 
             logger.info(f"Starting application with WebSocket support on {host}:{port}")
             logger.info(f"Debug mode: {debug}")
+            logger.info("WebSocket channels available: /rider/channel, /restaurant/channel")
 
             # 使用 socketio.run 启动应用
             socketio.run(
@@ -208,14 +274,11 @@ def create_app():
                 debug=debug,
                 use_reloader=False  # 禁用重载器，避免重复启动线程
             )
-
         except ImportError as e:
             logger.error(f"Import error: {e}")
-            # logger.error("Please make sure all dependencies are installed:")
-            # logger.error("pip install flask-socketio eventlet redis")
             raise
         except Exception as e:
             logger.error(f"Failed to start application: {e}")
             raise
-
     return app
+
