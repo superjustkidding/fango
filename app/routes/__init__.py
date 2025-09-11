@@ -5,6 +5,7 @@
 # @File    : __init__.py.py
 # @Software: PyCharm
 from .carts import register_cart_routes
+from .coupons import register_coupon_routes
 from .orders import register_order_routes
 from .riders import register_rider_routes
 from .users import register_user_routes
@@ -37,5 +38,9 @@ def register_all_routes(api, all_protected_endpoints):
     # 购物车路由
     cart_protected = register_cart_routes(api)
     all_protected_endpoints.extend(cart_protected)
+
+    # 优惠券路由
+    coupon_protected = register_coupon_routes(api)
+    all_protected_endpoints.extend(coupon_protected)
 
     return all_protected_endpoints

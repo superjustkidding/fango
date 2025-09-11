@@ -107,3 +107,13 @@ class UserCoupon(BaseModel):
 
     def __repr__(self):
         return f'<UserCoupon {self.coupon_id} for {self.user_id}>'
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "status": self.status,
+            "used_at": self.used_at,
+            "user_id": self.user_id,
+            "coupon_id": self.coupon_id,
+            'coupon': self.coupon.to_dict(),
+        }

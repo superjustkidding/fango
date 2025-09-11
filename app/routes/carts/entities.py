@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from app import db
 from app.models.carts.cart import Cart, CartItem
 from app.routes.logger import logger
@@ -64,11 +65,11 @@ class CartItemListEntity:
     def __init__(self, product_id):
         self.product_id = product_id
         self.cart_item = CartItem.query.filter_by(product_id=product_id).first()
+        if not self.cart_item:
+            raise BusinessValidationError("CartItem not found", ECode.FORBID)
 
     def update_item_quantity(self, quantity):
         """更新商品数量"""
-        if not self.cart_item:
-            raise BusinessValidationError("CartItem not found", ECode.FORBID)
         if quantity <= 0:
             return self.remove_item()
         self.cart_item.quantity = quantity
@@ -77,8 +78,6 @@ class CartItemListEntity:
         return self.cart_item.to_dict(), ECode.SUCC
 
     def remove_item(self):
-        if not self.cart_item:
-            raise BusinessValidationError("CartItem not found", ECode.FORBID)
         db.session.delete(self.cart_item)
         db.session.commit()
         logger.info("Removed product_id=%s ", self.product_id)
