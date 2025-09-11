@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from app.routes.carts.resources import CartResource, CartItemResource, CartItemListResource
 
 
