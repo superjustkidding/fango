@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-import os
 import logging
 import click
-import atexit
 import json
 
 from datetime import datetime
@@ -24,6 +22,7 @@ jwt = JWTManager()
 cors = CORS()
 
 logger = logging.getLogger(__name__)
+socketio = None
 
 def setup_logging(app):
     """配置应用日志"""
@@ -200,7 +199,7 @@ def create_app():
 
                 def on_message(self, data):
                     app.logger.info(f"Message received on RiderChannel: {data}")
-                    self.emit('response', {'data': 'Message received onRiderChannel'})
+                    self.emit('response', {'data': 'Message received on RiderChannel'})
 
                 def on_location_update(self, data):
                     """处理骑手位置更新"""
@@ -241,6 +240,7 @@ def create_app():
 
                         app.logger.info(f"Location updated for rider {rider_id}")
                         self.emit('location_updated', {'success': True, 'rider_id': rider_id})
+                        # self.emit('message', {'data': '您有新的订单啦'})
 
                     except Exception as e:
                         app.logger.error(f"Error processing location update: {e}")
