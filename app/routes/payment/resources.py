@@ -8,7 +8,7 @@
 from flask_restful import Resource
 from flask import request, current_app
 from .entities import WeChatPayEntity
-from app.schemas.payment.payment_schema import PaymentSchema
+from app.schemas.payment.payment_schema import WeChatPayCreateOrderSchema
 from app.utils.validation import validate_request
 from app.routes.jwt import current_user, user_required
 from app.routes.logger import logger
@@ -20,7 +20,7 @@ class WeChatPayCreateOrderResource(Resource):
     @user_required
     def post(self):
         """创建微信支付订单"""
-        data = validate_request(PaymentSchema, request.get_json())
+        data = validate_request(WeChatPayCreateOrderSchema, request.get_json())
         entity = WeChatPayEntity(current_user=current_user)
         return entity.create_order(data)
 
