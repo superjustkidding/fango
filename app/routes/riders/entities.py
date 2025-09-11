@@ -7,7 +7,8 @@ from app.models import Rider, RiderLocation
 from app.routes.jwt import create_auth_token
 from app.routes.logger import logger
 from app.utils.validation import BusinessValidationError
-from app.utils.websocket import redis_client
+from app.utils.notifications import notify_rider_new_order
+from extensions.redis_sync import get_redis_client
 from lib.ecode import ECode
 
 
@@ -189,6 +190,7 @@ class RiderLocationEntity:
         """获取骑手历史位置"""
         key = f"rider_locations:{self.rider_id}"
         if order_id:
+            redis_client = get_redis_client()
             history = redis_client.zrevrange(key, 0, limit - 1)
             if history:
                 filtered =[

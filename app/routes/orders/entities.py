@@ -2,12 +2,15 @@
 import json
 from datetime import datetime
 from app import db
-from app.models import Order, OrderItem, OrderItemOption, OrderStatusHistory, RiderAssignment, Rider
-from app.utils.validation import BusinessValidationError
-from app.utils.websocket import redis_client, socketio, TASK_ASSIGNMENT_CHANNEL
 from lib.ecode import ECode
-from app.utils.geo import haversine
 
+from app.utils.geo import haversine
+from app.utils.validation import BusinessValidationError
+from extensions.redis_sync import get_redis_client
+from app.models import Order, OrderItem, OrderItemOption, OrderStatusHistory, RiderAssignment, Rider
+from app.utils.notifications import notify_rider_new_order, notify_restaurant_new_order, notify_order_status_update
+
+redis_client = get_redis_client()
 
 class OrderEntity:
     def __init__(self, current_user):
@@ -141,11 +144,8 @@ class OrderEntity:
         db.session.commit()
 
         # 发布状态更新事件
-        socketio.emit('order_status_update', {
-            'order_id': order.id,
-            'status': new_status,
-            'timestamp': datetime.utcnow().isoformat()
-        }, room=f"order_{order.id}")
+        # 发送状态更新通知
+        notify_order_status_update(order_id, new_status, None)
 
         return order.to_dict(), ECode.SUCC
 
@@ -285,19 +285,7 @@ class OrderEntity:
         db.session.commit()
 
         # 通过WebSocket通知骑手
-        socketio.emit('new_assignment', {
-            'order_id': order.id,
-            'restaurant_name': order.restaurant.name,
-            'delivery_address': order.delivery_address,
-            'estimated_preparation_time': order.estimated_preparation_time
-        }, room=f"rider_{rider_id}")
-
-        # 发布到Redis频道
-        redis_client.publish(TASK_ASSIGNMENT_CHANNEL, json.dumps({
-            'order_id': order.id,
-            'rider_id': rider_id,
-            'timestamp': datetime.utcnow().isoformat()
-        }))
+        notify_rider_new_order(rider_id, order)
 
         return {
             'order': order.to_dict(),
@@ -354,21 +342,7 @@ class OrderEntity:
         db.session.commit()
 
         # 通过WebSocket通知骑手
-        socketio.emit('new_assignment', {
-            'order_id': order.id,
-            'restaurant_name': order.restaurant.name,
-            'delivery_address': order.delivery_address,
-            'estimated_preparation_time': order.estimated_preparation_time,
-            'auto_assigned': True
-        }, room=f"rider_{rider_id}")
-
-        # 发布到Redis频道
-        redis_client.publish(TASK_ASSIGNMENT_CHANNEL, json.dumps({
-            'order_id': order.id,
-            'rider_id': rider_id,
-            'timestamp': datetime.utcnow().isoformat(),
-            'auto_assigned': True
-        }))
+        notify_rider_new_order(rider_id, order)
 
         return {
             'order': order.to_dict(),

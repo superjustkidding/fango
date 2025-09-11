@@ -43,3 +43,10 @@ production:
   ADMIN_EMAIL: 'admin@example.com'
   ADMIN_PASSWORD: 'admin123'
   ADMIN_PHONE: '18000000000'
+
+  # wechat config
+  WECHAT_APPID: 'wechat APPID'
+  WECHAT_MCH_ID: '您的微信商户号'
+  WECHAT_API_KEY: '您的微信支付API密钥'
+  WECHAT_SANDBOX: True  # 是否使用沙箱环境
+  WECHAT_NOTIFY_URL: 'https://vocallmall.cn/pay/wechat/notify' # 支付回调地址

@@ -66,6 +66,11 @@ def setup_logging(app):
     # 设置其他库的日志级别
     logging.getLogger('werkzeug').setLevel(log_level)
 
+def create_socketio(app):
+    global socketio
+    from flask_socketio import SocketIO
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+    return socketio
 
 def create_app():
     app = Flask(__name__)
@@ -186,7 +191,8 @@ def create_app():
             from extensions.redis_sync import get_redis_client
 
             # 初始化 SocketIO
-            socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+            # global socketio
+            socketio = create_socketio(app)
 
             # 定义两个通道/命名空间
             class RiderChannel(Namespace):

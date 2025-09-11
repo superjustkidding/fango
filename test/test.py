@@ -22,17 +22,18 @@
 #
 # data = requests.get("http://127.0.0.1:5000/login")
 
-from app import socketio  # 导入全局socketio实例
+from app import create_app, create_socketio
 
-# 直接使用全局socketio实例发送消息
-socketio.emit(
-    'new_order',
-    {
-        'order_id': 1001,
-        'message': '您有新的配送订单',
-        'timestamp': '2023-11-15T10:30:00'
-    },
-    room='rider_123',  # 发送给特定骑手
-    namespace='/rider/channel'
-)
+app = create_app()
+socketio = create_socketio(app)
 
+def notify_rider(rider_id, message):
+    socketio.emit(
+        'order_notification',
+        {'msg': message, 'rider_id': rider_id},
+        namespace='/rider/channel'
+    )
+
+
+if __name__ == '__main__':
+    notify_rider(1, "你有新的订单啦")
