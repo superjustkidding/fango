@@ -6,7 +6,7 @@
 # @Software: PyCharm
 import re
 
-from app.models.users.user import User, UserAddress
+from app.models.users.user import User, UserAddress, UserCoupon
 from app import db
 from app.utils.validation import BusinessValidationError
 from werkzeug.security import generate_password_hash
@@ -217,21 +217,16 @@ class UserAddressEntity:
         self.current_user = current_user
         self.address_id = address_id
         self.address = UserAddress.query.get(address_id)
-
-    def get_address(self):
-
         if not self.current_user:
             raise BusinessValidationError("Permission denied", ECode.ERROR)
 
+    def get_address(self):
         address = UserAddress.query.filter_by(id=self.address_id).first()
         return address.to_dict(), ECode.SUCC
 
     def update_address(self, data):
-        if not self.current_user:
-            raise BusinessValidationError("Permission denied", ECode.ERROR)
         if not self.address:
             raise BusinessValidationError("Address does not exist", ECode.ERROR)
-
         if 'recipient' in data:
             self.address.recipient = data['recipient']
         if 'phone' in data:
@@ -262,8 +257,23 @@ class UserAddressEntity:
         return self.address.to_dict(), ECode.SUCC
 
     def delete_address(self):
-        if not self.current_user:
-            raise BusinessValidationError("Permission denied", ECode.ERROR)
         self.address.deleted = True
         db.session.commit()
         return {"message": "Address deleted successfully"}
+
+
+class UserCouponEntity:
+
+    def __init__(self, user_id):
+        self.user_id = user_id
+
+    def get_user_coupon(self):
+        coupons = UserCoupon.query.filter_by(user_id=self.user_id).all()
+        if not coupons:
+            logger.info("No coupons found for user_id=%s", self.user_id)
+            return [], ECode.SUCC
+        return coupons.to_dict(), ECode.SUCC
+
+
+
+

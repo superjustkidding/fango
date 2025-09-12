@@ -2,15 +2,17 @@
 import json
 from datetime import datetime
 from app import db
+from app.routes.logger import logger
 from lib.ecode import ECode
 
 from app.utils.geo import haversine
 from app.utils.validation import BusinessValidationError
 from extensions.redis_sync import get_redis_client
-from app.models import Order, OrderItem, OrderItemOption, OrderStatusHistory, RiderAssignment, Rider
+from app.models import Order, OrderItem, OrderItemOption, OrderStatusHistory, RiderAssignment, Rider, Review, ItemReview
 from app.utils.notifications import notify_rider_new_order, notify_restaurant_new_order, notify_order_status_update
 
 redis_client = get_redis_client()
+
 
 class OrderEntity:
     def __init__(self, current_user):
@@ -373,3 +375,117 @@ class OrderItemEntity:
         """获取订单项列表"""
         items = OrderItem.query.filter_by(order_id=self.order_id, deleted=False).all()
         return [item.to_dict() for item in items], ECode.SUCC
+
+
+class OrderReviewEntity:
+    def __init__(self, current_user, order_id):
+        self.current_user = current_user
+        self.order_id = order_id
+        self.order = Order.query.filter_by(id=order_id).first()
+        if not self.order:
+            raise BusinessValidationError("Order not found", ECode.NOTFOUND)
+
+        if self.order.user_id != self.current_user.id:
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+
+    def create_review(self, data):
+        if self.order.status != Order.STATUS_COMPLETED:
+            raise BusinessValidationError("Order not completed", ECode.FORBID)
+
+        review = Review(
+            rating=data['rating'],
+            comment=data['comment'],
+            is_anonymous=data['is_anonymous'],
+            order_id=self.order_id,
+        )
+        db.session.add(review)
+        db.session.flush()
+
+        for item_review in data.get('item_reviews', []):
+            item_re = ItemReview(
+                rating=item_review['rating'],
+                comment=item_review['comment'],
+                menu_item_id=item_review['menu_item_id'],
+            )
+            db.session.add(item_re)
+        db.session.commit()
+        logger.info('User %s review created for order %s', Review.user_id, self.order_id)
+        return review.to_dict(), ECode.SUCC
+
+    def update_review(self, data):
+        review = Review.query.filter_by(order_id=self.order_id, deleted=False).first()
+        if not review:
+            raise BusinessValidationError("Review not found", ECode.NOTFOUND)
+        if 'rating' in data:
+            if not (1 <= data['rating'] <= 5):
+                raise BusinessValidationError("Rating must be between 1 and 5", ECode.FORBID)
+            review.rating = data['rating']
+        if 'comment' in data:
+            review.comment = data['comment']
+        if 'is_anonymous' in data:
+            review.is_anonymous = data['is_anonymous']
+        if 'item_reviews' in data:
+            for item in data['item_reviews']:
+                item_review = ItemReview.query.filter_by(
+                    review_id=item["review_id"],
+                    menu_item_id=item["menu_item_id"],
+                ).first()
+                if item_review:
+                    if 'rating' in data:
+                        if not (1 <= data['rating'] <= 5):
+                            raise BusinessValidationError("Rating must be between 1 and 5", ECode.FORBID)
+                        review.rating = data['rating']
+                    if 'comment' in data:
+                        review.comment = data['comment']
+                else:
+                    new_item_review = ItemReview(
+                        menu_item_id=item["menu_item_id"],
+                        rating=item["rating"],
+                        comment=item.get("comment")
+                    )
+                    db.session.add(new_item_review)
+        db.session.commit()
+        logger.info("Updated review for order_id=%s", self.order_id)
+        return review.to_dict(), ECode.SUCC
+
+    def get_user_reviews(self):
+        reviews = Review.query.filter_by(order_id=self.order_id).first()
+        if not reviews:
+            logger.warning("Review not found for order_id=%s", self.order_id)
+            raise BusinessValidationError("Review not found", ECode.NOTFOUND)
+        return [r.to_dict() for r in reviews], ECode.SUCC
+
+    def delete_review(self):
+        review = Review.query.filter_by(id=self.order_id, deleted=False).first()
+        if not review:
+            raise BusinessValidationError("Review not found", ECode.NOTFOUND)
+        review.deleted = True
+        db.session.commit()
+        return {'msg': "Review deleted"}, ECode.SUCC
+
+
+class OrderReviewListEntity:
+    def __init__(self, current_user, review_id):
+        self.current_user = current_user
+        self.review_id = review_id
+        if not self.current_user:
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+
+    def reply_review(self, reply):
+        review = Review.query.filter_by(id=self.review_id, deleted=False).first()
+        if not review:
+            raise BusinessValidationError("Review not found", ECode.NOTFOUND)
+        if review.restaurant_id != self.current_user.restaurt_id:
+            raise BusinessValidationError("Permission denied", ECode.FORBID)
+        review.reply = reply
+        review.reply_at = datetime.now()
+        db.session.commit()
+        logger.info('Restaurant %s reply for review %s', Review.restaurant_id, review.id)
+        return review.to_dict(), ECode.SUCC
+
+
+
+
+
+
+

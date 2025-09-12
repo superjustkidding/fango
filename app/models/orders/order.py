@@ -149,6 +149,16 @@ class Review(BaseModel):
     def __repr__(self):
         return f'<Review {self.rating} stars>'
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'rating': self.rating,
+            'comment': self.comment,
+            'reply': self.reply,
+            'reply_at': self.reply_at,
+            'is_anonymous': self.is_anonymous,
+            'item_reviews': self.item_reviews.to_dict(),
+        }
 
 class ItemReview(BaseModel):
     """菜品评价"""
@@ -164,3 +174,11 @@ class ItemReview(BaseModel):
 
     def __repr__(self):
         return f'<ItemReview for {self.menu_item_id}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'rating': self.rating,
+            'comment': self.comment,
+            'menu_item_id': self.menu_item_id,
+        }

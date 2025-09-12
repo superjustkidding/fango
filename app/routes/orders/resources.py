@@ -4,8 +4,9 @@ from flask import request
 from flask_restful import Resource
 from app.models.orders import Order
 from app.routes.jwt import admin_required, current_user, user_required, restaurant_required, rider_required
-from app.routes.orders.entities import OrderEntity, OrderItemEntity
-from app.schemas.orders.orders_schema import OrderSchemas, OrderUpdateSchemas, OrderAssignmentSchema
+from app.routes.orders.entities import OrderEntity, OrderItemEntity, OrderReviewEntity, OrderReviewListEntity
+from app.schemas.orders.orders_schema import OrderSchemas, OrderUpdateSchemas, OrderAssignmentSchema, ReviewBase, \
+    ReviewRestaurantSchema
 from app.utils.validation import validate_request
 
 
@@ -133,3 +134,53 @@ class OrderAutoAssignmentResource(Resource):
         """自动分配订单给最优骑手"""
         entity = OrderEntity(current_user=current_user)
         return entity.auto_assign_rider(order_id)
+
+
+class OrderReviewResource(Resource):
+    endpoint = 'api.OrderReviewResource'
+
+    @user_required
+    def post(self, order_id):
+        data = validate_request(ReviewBase, request.get_json())
+        entity = OrderReviewEntity(
+            current_user=current_user,
+            order_id=order_id)
+        return entity.create_review(data.get('review_id'))
+
+    @user_required
+    def get(self, order_id):
+        entity = OrderReviewEntity(
+            current_user=current_user,
+            order_id=order_id)
+        return entity.get_user_reviews()
+
+    @user_required
+    def put(self, order_id):
+        data = validate_request(ReviewBase, request.get_json())
+        entity = OrderReviewEntity(
+            current_user=current_user,
+            order_id=order_id
+        )
+        return entity.update_review(data.get('review_id'))
+
+    @user_required
+    def delete(self, order_id):
+        entity = OrderReviewEntity(
+            current_user=current_user,
+            order_id=order_id)
+        return entity.delete_review()
+
+
+class OrderReviewListResource(Resource):
+    endpoint = 'api.OrderReviewListResource'
+
+    @restaurant_required
+    def post(self, review_id):
+        data = validate_request(ReviewRestaurantSchema, request.get_json())
+        entity = OrderReviewListEntity(
+            current_user=current_user,
+            review_id=review_id)
+        return entity.reply_review(reply=data['reply'])
+
+
+

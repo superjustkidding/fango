@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from app.routes.orders.resources import OrderListResource, OrderResource, OrderAssignmentResource, \
-    OrderAutoAssignmentResource, OrderItemsResource, OrderRestaurantResource, OrderRiderResource
+    OrderAutoAssignmentResource, OrderItemsResource, OrderRestaurantResource, OrderRiderResource, OrderReviewResource, \
+    OrderReviewListResource
 
 
 def register_order_routes(api):
@@ -11,6 +12,8 @@ def register_order_routes(api):
     api.add_resource(OrderItemsResource, '/orders/<int:order_id>/item')  # 用户订单列表
     api.add_resource(OrderRestaurantResource, '/orders/<int:order_id>/restaurant')  # 餐馆修改订单获取详情
     api.add_resource(OrderRiderResource, '/orders/<int:order_id>/rider')  # 骑手修改订单
+    api.add_resource(OrderReviewResource, '/orders/<int:order_id>/review')  # 订单评价
+    api.add_resource(OrderReviewListResource, 'orders/<int:review_id>/reply')
 
     return [
         'api.OrderListResource',
@@ -19,5 +22,7 @@ def register_order_routes(api):
         'api.OrderAutoAssignmentResource',
         'api.OrderItemsResource',
         'api.OrderRestaurantResource',
-        'api.OrderRiderResource'
+        'api.OrderRiderResource',
+        'api.OrderReviewResource',
+        'api.OrderReviewListResource',
         ]

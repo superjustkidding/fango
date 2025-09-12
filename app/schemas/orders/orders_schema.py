@@ -58,6 +58,8 @@ class ReviewBase(BaseSchema):
     comment: Optional[str] = None
     is_anonymous: bool = False
 
+class ReviewRestaurantSchema(Schema):
+    reply: Optional[str]
 
 class ItemReviewBase(BaseSchema):
     rating: conint(ge=1, le=5)

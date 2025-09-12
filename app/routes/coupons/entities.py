@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
-
 from app import db
 from app.models import Coupon, UserCoupon, User
 from app.routes.logger import logger

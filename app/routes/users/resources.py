@@ -7,7 +7,7 @@
 
 from flask_restful import Resource
 from flask import request
-from .entities import UserEntity, UserItemEntity, UserAddressEntity, UserAddressListEntity
+from .entities import UserEntity, UserItemEntity, UserAddressEntity, UserAddressListEntity, UserCouponEntity
 from app.schemas.user.user import UserCreateSchema, UserUpdateSchema, LoginSchema, UserAddressSchema
 from app.utils.validation import validate_request, BusinessValidationError
 from app.routes.jwt import current_user, admin_required, user_required
@@ -143,5 +143,13 @@ class UserAddressResource(Resource):
             address_id=address_id
         )
         return entity.delete_address()
+
+
+class UserCouponResource(Resource):
+
+    @user_required
+    def get(self, user_id):
+        entity = UserCouponEntity(user_id=user_id)
+        return entity.get_user_coupon()
 
 
