@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信支付开发环境测试</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #07C160;
+        }
+        .section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #07C160;
+            display: flex;
+            align-items: center;
+        }
+        .section-title::before {
+            content: "•";
+            margin-right: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #07C160;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #06AE56;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #07C160;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .status.success {
+            background-color: #e7f6e9;
+            color: #07C160;
+        }
+        .status.error {
+            background-color: #fee;
+            color: #e54545;
+        }
+        .status.pending {
+            background-color: #e9f5fe;
+            color: #1989fa;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom-color: #07C160;
+            color: #07C160;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #f5f5f5;
+        }
+        .log-time {
+            color: #888;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        .instructions {
+            background-color: #e9f5fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1989fa;
+        }
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #1989fa;
+        }
+        .instructions ol {
+            margin-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>微信支付开发环境测试</h1>
+
+        <div class="instructions">
+            <h3>使用说明</h3>
+            <ol>
+                <li>启动内网穿透工具（如ngrok）将本地服务暴露到公网</li>
+                <li>在微信支付商户平台配置回调URL（使用ngrok域名 + /pay/wechat/notify）</li>
+                <li>确保后端服务正在运行且数据库连接正常</li>
+                <li>使用测试数据创建支付订单</li>
+                <li>模拟支付成功回调以测试回调处理逻辑</li>
+                <li>查询订单状态验证支付结果</li>
+            </ol>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="create">创建订单</div>
+            <div class="tab" data-tab="simulate">模拟回调</div>
+            <div class="tab" data-tab="query">查询订单</div>
+            <div class="tab" data-tab="logs">操作日志</div>
+        </div>
+
+        <!-- 创建订单 -->
+        <div class="tab-content active" id="create-tab">
+            <div class="section">
+                <div class="section-title">创建支付订单</div>
+                <div class="form-group">
+                    <label for="total_fee">支付金额（分）</label>
+                    <input type="number" id="total_fee" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="body">商品描述</label>
+                    <input type="text" id="body" value="测试商品">
+                </div>
+                <div class="form-group">
+                    <label for="attach">附加数据</label>
+                    <input type="text" id="attach" value="测试附加数据">
+                </div>
+                <div class="form-group">
+                    <label for="trade_type">交易类型</label>
+                    <select id="trade_type">
+                        <option value="JSAPI">JSAPI</option>
+                        <option value="NATIVE">NATIVE</option>
+                        <option value="APP">APP</option>
+                    </select>
+                </div>
+                <button id="create-order-btn">创建订单</button>
+                <div class="result" id="create-result"></div>
+            </div>
+        </div>
+
+        <!-- 模拟回调 -->
+        <div class="tab-content" id="simulate-tab">
+            <div class="section">
+                <div class="section-title">模拟支付回调</div>
+                <div class="form-group">
+                    <label for="out_trade_no">商户订单号</label>
+                    <input type="text" id="simulate-out-trade-no" placeholder="输入要模拟回调的订单号">
+                </div>
+                <button id="simulate-callback-btn">模拟支付成功回调</button>
+                <div class="result" id="simulate-result"></div>
+            </div>
+        </div>
+
+        <!-- 查询订单 -->
+        <div class="tab-content" id="query-tab">
+            <div class="section">
+                <div class="section-title">查询订单状态</div>
+                <div class="form-group">
+                    <label for="query-out-trade-no">商户订单号</label>
+                    <input type="text" id="query-out-trade-no" placeholder="输入要查询的订单号">
+                </div>
+                <button id="query-order-btn">查询订单</button>
+                <div class="result" id="query-result"></div>
+            </div>
+        </div>
+
+        <!-- 操作日志 -->
+        <div class="tab-content" id="logs-tab">
+            <div class="section">
+                <div class="section-title">操作日志</div>
+                <div id="logs-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentOutTradeNo = '';
+        const logs = [];
+
+        // DOM 加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 标签切换功能
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 移除所有active类
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+                    // 添加active类到当前标签
+                    tab.classList.add('active');
+                    const tabId = tab.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+
+            // 创建订单按钮事件
+            document.getElementById('create-order-btn').addEventListener('click', createOrder);
+
+            // 模拟回调按钮事件
+            document.getElementById('simulate-callback-btn').addEventListener('click', simulateCallback);
+
+            // 查询订单按钮事件
+            document.getElementById('query-order-btn').addEventListener('click', queryOrder);
+        });
+
+        // 添加日志
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = {
+                time: timestamp,
+                message: message,
+                type: type
+            };
+
+            logs.unshift(logEntry); // 添加到开头，使最新日志显示在最上面
+
+            // 更新日志显示
+            const logsContainer = document.getElementById('logs-container');
+            logsContainer.innerHTML = '';
+
+            logs.forEach(log => {
+                const logElement = document.createElement('div');
+                logElement.className = `log-entry ${log.type}`;
+                logElement.innerHTML = `<span class="log-time">${log.time}</span> ${log.message}`;
+                logsContainer.appendChild(logElement);
+            });
+
+            // 自动切换到日志标签
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector('.tab[data-tab="logs"]').classList.add('active');
+            document.getElementById('logs-tab').classList.add('active');
+        }
+
+        // 创建订单
+        async function createOrder() {
+            const totalFee = document.getElementById('total_fee').value;
+            const body = document.getElementById('body').value;
+            const attach = document.getElementById('attach').value;
+            const tradeType = document.getElementById('trade_type').value;
+
+            const resultElement = document.getElementById('create-result');
+            resultElement.innerHTML = '正在创建订单...';
+
+            try {
+                const response = await fetch('/pay/wechat/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}` // 假设您有获取token的函数
+                    },
+                    body: JSON.stringify({
+                        total_fee: parseInt(totalFee),
+                        body: body,
+                        attach: attach,
+                        trade_type: tradeType
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.code === 0) {
+                    currentOutTradeNo = data.data.out_trade_no;
+                    resultElement.innerHTML = `订单创建成功!\n订单号: ${data.data.out_trade_no}\n支付参数: ${JSON.stringify(data.data.pay_params, null, 2)}`;
+
+                    // 更新模拟回调表单中的订单号
+                    document.getElementById('simulate-out-trade-no').value = data.data.out_trade_no;
+
+                    addLog(`创建订单成功: ${data.data.out_trade_no}`, 'success');
+                } else {
+                    resultElement.innerHTML = `创建订单失败: ${data.msg}`;
+                    addLog(`创建订单失败: ${data.msg}`, 'error');
+                }
+            } catch (error) {
+                resultElement.innerHTML = `请求错误: ${error.message}`;
+                addLog(`创建订单请求错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 模拟回调
+        async function simulateCallback() {
+            const outTradeNo = document.getElementById('simulate-out-trade-no').value || currentOutTradeNo;
+
+            if (!outTradeNo) {
+                alert('请输入商户订单号');
+                return;
+            }
+
+            const resultElement = document.getElementById('simulate-result');
+            resultElement.innerHTML = '正在模拟回调...';
+
+            try {
+                // 注意：这里假设您在后端已经实现了模拟回调接口
+                // 如果没有，您需要先在后端添加一个模拟回调的接口
+                const response = await fetch('/pay/wechat/simulate_callback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        out_trade_no: outTradeNo,
+                        transaction_id: `TEST_TRANS_${Date.now()}`,
+                        total_fee: 1,
+                        time_end: new Date().toISOString().replace(/[-:T]/g, '').split('.')[0] // 格式: yyyyMMddHHmmss
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.code === 0) {
+                    resultElement.innerHTML = `模拟回调成功!\n${JSON.stringify(data, null, 2)}`;
+                    addLog(`模拟回调成功: ${outTradeNo}`, 'success');
+                } else {
+                    resultElement.innerHTML = `模拟回调失败: ${data.msg}`;
+                    addLog(`模拟回调失败: ${data.msg}`, 'error');
+                }
+            } catch (error) {
+                resultElement.innerHTML = `请求错误: ${error.message}`;
+                addLog(`模拟回调请求错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 查询订单
+        async function queryOrder() {
+            const outTradeNo = document.getElementById('query-out-trade-no').value || currentOutTradeNo;
+
+            if (!outTradeNo) {
+                alert('请输入商户订单号');
+                return;
+            }
+
+            const resultElement = document.getElementById('query-result');
+            resultElement.innerHTML = '正在查询订单...';
+
+            try {
+                const response = await fetch(`/pay/wechat/query/${outTradeNo}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}` // 假设您有获取token的函数
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.code === 0) {
+                    resultElement.innerHTML = `订单查询成功!\n${JSON.stringify(data.data, null, 2)}`;
+                    addLog(`查询订单成功: ${outTradeNo}`, 'success');
+                } else {
+                    resultElement.innerHTML = `订单查询失败: ${data.msg}`;
+                    addLog(`查询订单失败: ${data.msg}`, 'error');
+                }
+            } catch (error) {
+                resultElement.innerHTML = `请求错误: ${error.message}`;
+                addLog(`查询订单请求错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 获取认证token（根据您的实际实现修改）
+        function getAuthToken() {
+            // 这里只是一个示例，您需要根据实际的认证方式获取token
+            // 例如从localStorage或cookie中获取
+            return localStorage.getItem('auth_token') || '';
+        }
+    </script>
+</body>
+</html>

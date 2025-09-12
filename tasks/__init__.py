@@ -5,13 +5,11 @@
 # @File    : __init__.py.py
 # @Software: PyCharm
 
-
 # tasks/__init__.py
 from .celery_app import create_celery_app
 
 # 全局Celery实例
 celery = None
-
 
 def init_celery(app):
     """初始化Celery并注册任务"""

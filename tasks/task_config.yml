@@ -1,0 +1,45 @@
+# tasks/task_config.yml
+# Celery 配置
+
+flask:
+  secret_key: 'your-secret-key-here'
+  sqlalchemy_database_uri: 'mysql+pymysql://admin:123456@192.168.3.66:3306/fango'
+  sqlalchemy_track_modifications: false
+
+# Celery 配置
+celery:
+  broker_url: "amqp://admin:admin123@192.168.3.66:5672//"   # RabbitMQ
+  result_backend: "redis://192.168.3.66:6379/0"          # Redis
+  timezone: 'Asia/Shanghai'
+  enable_utc: true
+
+
+beat_schedule:
+  cleanup_old_records:
+    task: 'tasks.db_tasks.cleanup_old_records'
+    schedule: 43200  # 12小时，单位：秒
+    args: [30]
+    options:
+      queue: 'db_tasks'
+
+  daily_reminder:
+    task: 'tasks.email_tasks.send_daily_reminder'
+    schedule: '0 9 * * *'  # 每天9:00 (crontab格式)
+    options:
+      queue: 'email_tasks'
+
+  update_coupon_status:
+    task: 'tasks.db_tasks.update_coupon_status'
+    schedule: '* * * * *'  # 每小时的第0分钟
+    options:
+      queue: 'db_tasks'
+
+  update_restaurant_sales:
+    task: 'tasks.db_tasks.update_restaurant_sales'
+    schedule: '5 * * * *'  # 每小时的第5分钟
+    options:
+      queue: 'db_tasks'
+
+logging:
+  level: 'INFO'
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
