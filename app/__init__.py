@@ -72,7 +72,7 @@ def create_socketio(app):
     socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
     return socketio
 
-def create_app():
+def create_app(config=None):
     app = Flask(__name__)
 
     # 加载配置

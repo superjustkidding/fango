@@ -1,11 +1,22 @@
 
 # 安装rabbitmq和redis
 
-# 启动 Flask 应用
-python run.py
+启动说明
 
-# 启动 Celery 工作进程（新终端）
-python -m tasks.start_worker
+start_beat_worker.py 在windows中启动的时候需要改为
+def start_celery_worker():
+    """启动Celery worker"""
+    cmd = [
+        sys.executable, '-m', 'celery',
+        '-A', 'tasks.celery_app:celery',
+        'worker',
+        '--loglevel=info',
+        '--pool=solo',  # windows为solo  linux为prefork  重要重要
+        '--concurrency=4',
+        '--queues=db_tasks,email_tasks',
+        '--hostname=worker@%h'  # 添加主机名标识
+    ]
+    return subprocess.Popen(cmd)
 
-# 启动 Celery 定时任务调度器（新终端）
-python -m tasks.start_beat
+
+启动  python start_beat_worker.py

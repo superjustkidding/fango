@@ -17,6 +17,7 @@ conf/settings_dev.py
 config/dev-config.yml
 config/pro-config.yml
 config/test-config.yml
+tasks/runtime
 deployed/docker-compose-test.yml
 /deployed/mongo/
 /deployed/mysql/

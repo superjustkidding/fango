@@ -6,8 +6,7 @@
 # @Software: PyCharm
 
 # tasks/email_tasks.py
-from . import celery  # 从全局导入celery实例
-from app import db
+from tasks.celery_app import celery
 import time
 import random
 from celery.utils.log import get_task_logger
