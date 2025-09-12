@@ -10,12 +10,19 @@ from app.models import BaseModel
 
 
 class Payment(BaseModel):
-    """支付订单模型"""
-    __tablename__ = 'payment'
+    """支付记录"""
+    __tablename__ = 'payments'
+
+    # 支付状态
+    STATUS_PENDING = 'pending'
+    STATUS_COMPLETED = 'completed'
+    STATUS_FAILED = 'failed'
+    STATUS_REFUNDED = 'refunded'  # 已退款
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # 关联用户ID
     out_trade_no = db.Column(db.String(32), unique=True, nullable=False)  # 商户订单号
     transaction_id = db.Column(db.String(32))  # 微信支付订单号
+    payment_method = db.Column(db.String(20), nullable=False)  # wechat, alipay, card, cash
     total_fee = db.Column(db.Integer, nullable=False)  # 订单金额(分)
     body = db.Column(db.String(128), nullable=False)  # 商品描述
     attach = db.Column(db.String(127))  # 附加数据
@@ -29,8 +36,14 @@ class Payment(BaseModel):
     err_code = db.Column(db.String(32))  # 错误代码
     err_code_des = db.Column(db.String(128))  # 错误描述
 
+    # 外键
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+
     # 关联用户
     user = db.relationship('User', backref=db.backref('payment_orders', lazy=True))
+
+    def __repr__(self):
+        return f'<Payment {self.amount} via {self.payment_method}>'
 
     def to_dict(self):
         return {

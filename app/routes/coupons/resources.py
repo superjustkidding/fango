@@ -33,6 +33,7 @@ class CouponAssignResource(Resource):
             return entity.assign_user_single(data['user_id'])
         elif data.get('auto'):
             return entity.auto_assign_coupon()
+        return None
 
 class CouponListResource(Resource):
     endpoint = 'api.CouponListResource'
