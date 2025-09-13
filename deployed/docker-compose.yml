@@ -6,45 +6,36 @@ services:
     volumes:
       - ..:/app
       - ./logs:/app/logs
-    environment:
-      - FLASK_ENV=production
-      - FLASK_APP=app/__init__.py
     env_file:
-      - .env
+      - ../.env
     restart: unless-stopped
     networks:
       - fango-network
-    command: /start.sh
+    command: /start-web.sh
 
   celery-worker:
     build: ..
     volumes:
       - ..:/app
       - ./logs:/app/logs
-    environment:
-      - FLASK_ENV=production
-      - FLASK_APP=app/__init__.py
     env_file:
-      - .env
+      - ../.env
     restart: unless-stopped
     networks:
       - fango-network
-    command: celery -A tasks.celery_app:celery worker --loglevel=info --queues=db_tasks,email_tasks
+    command: /start-celery-worker.sh
 
   celery-beat:
     build: ..
     volumes:
       - ..:/app
       - ./logs:/app/logs
-    environment:
-      - FLASK_ENV=production
-      - FLASK_APP=app/__init__.py
     env_file:
-      - .env
+      - ../.env
     restart: unless-stopped
     networks:
       - fango-network
-    command: celery -A tasks.celery_app:celery beat --loglevel=info
+    command: /start-celery-beat.sh
 
 networks:
   fango-network:
