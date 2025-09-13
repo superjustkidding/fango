@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# 加载环境变量（如果需要在脚本中显式加载）
+if [ -f /app/.env ]; then
+    export $(cat /app/.env | grep -v '#' | awk '/=/ {print $1}')
+fi
+
 # 等待数据库就绪
 echo "等待数据库就绪..."
 while ! nc -z $MYSQL_HOST $MYSQL_PORT; do

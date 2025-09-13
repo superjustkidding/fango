@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制应用代码
+# 复制应用代码和 .env 文件
 COPY . .
 
 # 创建日志目录
