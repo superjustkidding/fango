@@ -1,8 +1,13 @@
 #!/bin/bash
 
-# 加载环境变量（如果需要在脚本中显式加载）
+# 加载环境变量
 if [ -f /app/.env ]; then
     export $(cat /app/.env | grep -v '#' | awk '/=/ {print $1}')
+fi
+
+# 设置 FLASK_ENV 如果未设置
+if [ -z "$FLASK_ENV" ]; then
+    export FLASK_ENV=${DEVELOPMENT:-development}
 fi
 
 # 等待数据库和消息队列就绪
@@ -25,4 +30,5 @@ echo "消息队列已就绪!"
 
 # 启动 Celery Worker
 echo "启动 Celery Worker..."
+echo "当前环境: $FLASK_ENV"
 exec celery -A tasks.celery_app:celery worker --loglevel=info --queues=db_tasks,email_tasks

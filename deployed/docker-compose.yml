@@ -7,7 +7,10 @@ services:
       - ..:/app
       - ./logs:/app/logs
     env_file:
-      - ../.env
+      - ../.env  # 引用根目录的 .env 文件
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=${DEVELOPMENT:-development}  # 使用 .env 中的 DEVELOPMENT 变量作为 FLASK_ENV
     restart: unless-stopped
     networks:
       - fango-network
@@ -19,7 +22,10 @@ services:
       - ..:/app
       - ./logs:/app/logs
     env_file:
-      - ../.env
+      - ../.env  # 引用根目录的 .env 文件
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=${DEVELOPMENT:-development}  # 使用 .env 中的 DEVELOPMENT 变量作为 FLASK_ENV
     restart: unless-stopped
     networks:
       - fango-network
@@ -31,7 +37,10 @@ services:
       - ..:/app
       - ./logs:/app/logs
     env_file:
-      - ../.env
+      - ../.env  # 引用根目录的 .env 文件
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=${DEVELOPMENT:-development}  # 使用 .env 中的 DEVELOPMENT 变量作为 FLASK_ENV
     restart: unless-stopped
     networks:
       - fango-network
