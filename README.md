@@ -1,26 +1,22 @@
 # Fango应用说明
 
-### build
-
+### 构建和启动所有服务
 ```sh
-$ docker build -t fango .
+$ docker-compose -f deployed/docker-compose.yml up -d --build
+```
+### 查看所有服务状态
+```sh
+$ docker-compose -f deployed/docker-compose.yml ps
 ```
 
-### start
-
+### 查看特定服务日志
 ```sh
-$ docker compose -f deploy/docker-compose.yml up  -d
+$ docker-compose -f deployed/docker-compose.yml logs -f web
+$ docker-compose -f deployed/docker-compose.yml logs -f celery-worker
+$ docker-compose -f deployed/docker-compose.yml logs -f celery-beat
 ```
 
-### stop
-
+###停止所有服务
 ```sh
-$ docker compose -f deploy/docker-compose.yaml -f deploy/docker-compose-dev.yaml stop
+$ docker-compose -f deployed/docker-compose.yml down
 ```
-
-### debug
-
-```sh
-$ docker compose -f deploy/docker-compose.yaml -f deploy/docker-compose-dev.yaml logs -f
-```
-

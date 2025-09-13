@@ -1,19 +1,54 @@
 services:
   web:
-    build: .
+    build: ..
     ports:
       - "5000:5000"
     volumes:
-      - .:/app
+      - ..:/app
+      - ./logs:/app/logs
     environment:
-      FLASK_ENV: development
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - FLASK_ENV=production
+      - FLASK_APP=app/__init__.py
+    env_file:
+      - .env
     restart: unless-stopped
+    networks:
+      - fango-network
+    command: /start.sh
 
-volumes:
-  mysql-data:
+  celery-worker:
+    build: ..
+    volumes:
+      - ..:/app
+      - ./logs:/app/logs
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=app/__init__.py
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - fango-network
+    command: celery -A tasks.celery_app:celery worker --loglevel=info --queues=db_tasks,email_tasks
+
+  celery-beat:
+    build: ..
+    volumes:
+      - ..:/app
+      - ./logs:/app/logs
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=app/__init__.py
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - fango-network
+    command: celery -A tasks.celery_app:celery beat --loglevel=info
 
 networks:
-  docker_bella:
-    external: true
+  fango-network:
+    driver: bridge
+
+volumes:
+  logs:

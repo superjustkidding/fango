@@ -5,6 +5,7 @@
 .project
 .idea/
 .vscode
+.env
 *~
 *#
 .idea/*
