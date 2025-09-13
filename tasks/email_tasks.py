@@ -5,7 +5,6 @@
 # @File    : email_tasks.py.py
 # @Software: PyCharm
 
-# tasks/email_tasks.py
 from tasks.celery_app import celery
 import time
 import random
@@ -22,6 +21,7 @@ def send_welcome_email(self, user_id):
 
         # 延迟导入模型以避免循环依赖
         from app.models import User
+        from app import db
 
         user = User.query.get(user_id)
 
@@ -39,7 +39,6 @@ def send_welcome_email(self, user_id):
         # 60秒后重试
         self.retry(exc=e, countdown=60, max_retries=3)
 
-
 @celery.task
 def send_daily_reminder():
     """发送每日提醒（定时任务）"""
@@ -48,6 +47,7 @@ def send_daily_reminder():
 
         # 延迟导入模型以避免循环依赖
         from app.models import User
+        from app import db
 
         # 获取所有用户
         users = User.query.all()

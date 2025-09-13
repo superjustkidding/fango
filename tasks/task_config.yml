@@ -13,7 +13,6 @@ celery:
   timezone: 'Asia/Shanghai'
   enable_utc: true
 
-
 beat_schedule:
   cleanup_old_records:
     task: 'tasks.db_tasks.cleanup_old_records'
@@ -36,7 +35,13 @@ beat_schedule:
 
   update_restaurant_sales:
     task: 'tasks.db_tasks.update_restaurant_sales'
-    schedule: '5 * * * *'  # 每小时的第5分钟
+    schedule: '* * * * *'   # 每小时的第5分钟
+    options:
+      queue: 'db_tasks'
+
+  user_daily_coupon:
+    task: 'tasks.db_tasks.user_daily_coupon'
+    schedule: '* * * * *'  # 每小时的第5分钟
     options:
       queue: 'db_tasks'
 

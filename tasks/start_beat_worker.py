@@ -14,9 +14,7 @@ import platform
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from app import create_app
 from tasks import init_celery
-
 
 def get_runtime_dir():
     """获取 Celery 运行时文件存储目录"""
@@ -28,7 +26,6 @@ def get_runtime_dir():
         os.makedirs(runtime_dir, exist_ok=True)
 
     return runtime_dir
-
 
 def start_celery_worker():
     """启动 Celery worker"""
@@ -50,7 +47,6 @@ def start_celery_worker():
 
     return subprocess.Popen(cmd)
 
-
 def start_celery_beat():
     """启动 Celery beat"""
     runtime_dir = get_runtime_dir()
@@ -70,14 +66,10 @@ def start_celery_beat():
     ]
     return subprocess.Popen(cmd)
 
-
 if __name__ == '__main__':
     try:
-        # 创建 Flask 应用
-        flask_app = create_app()
-
         # 初始化 Celery
-        celery_app = init_celery(flask_app)
+        celery_app = init_celery(None)
 
         print("启动 Celery worker 和 beat...")
 
