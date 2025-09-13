@@ -155,9 +155,9 @@ class Review(BaseModel):
             'rating': self.rating,
             'comment': self.comment,
             'reply': self.reply,
-            'reply_at': self.reply_at,
+            'reply_at': self.reply_at.isoformat() if self.reply_at else None,
             'is_anonymous': self.is_anonymous,
-            'item_reviews': self.item_reviews.to_dict(),
+            'item_reviews': [ir.to_dict() for ir in self.item_reviews],
         }
 
 class ItemReview(BaseModel):

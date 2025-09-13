@@ -74,7 +74,7 @@ class OrderEntity:
         # 创建订单之后， 订单推送商家
 
         # 发布订单创建事件
-        redis_client.publish('new_orders', json.dumps(order.to_dict()))
+        # redis_client.publish('new_orders', json.dumps(order.to_dict()))
 
         return order.to_dict(), ECode.SUCC
 
@@ -389,6 +389,7 @@ class OrderReviewEntity:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
     def create_review(self, data):
+        """用户写订单评价"""
         if self.order.status != Order.STATUS_COMPLETED:
             raise BusinessValidationError("Order not completed", ECode.FORBID)
 
@@ -397,6 +398,8 @@ class OrderReviewEntity:
             comment=data['comment'],
             is_anonymous=data['is_anonymous'],
             order_id=self.order_id,
+            restaurant_id=self.order .restaurant_id,
+            user_id=self.current_user.id,
         )
         db.session.add(review)
         db.session.flush()
@@ -406,6 +409,7 @@ class OrderReviewEntity:
                 rating=item_review['rating'],
                 comment=item_review['comment'],
                 menu_item_id=item_review['menu_item_id'],
+                review_id=review.id,
             )
             db.session.add(item_re)
         db.session.commit()
@@ -413,6 +417,7 @@ class OrderReviewEntity:
         return review.to_dict(), ECode.SUCC
 
     def update_review(self, data):
+        """更新评价"""
         review = Review.query.filter_by(order_id=self.order_id, deleted=False).first()
         if not review:
             raise BusinessValidationError("Review not found", ECode.NOTFOUND)
@@ -445,17 +450,19 @@ class OrderReviewEntity:
                     )
                     db.session.add(new_item_review)
         db.session.commit()
-        logger.info("Updated review for order_id=%s", self.order_id)
+        logger.info('User %s review created for order %s', review.user_id, self.order.id)
         return review.to_dict(), ECode.SUCC
 
     def get_user_reviews(self):
+        """获取订单评价"""
         reviews = Review.query.filter_by(order_id=self.order_id).first()
         if not reviews:
             logger.warning("Review not found for order_id=%s", self.order_id)
             raise BusinessValidationError("Review not found", ECode.NOTFOUND)
-        return [r.to_dict() for r in reviews], ECode.SUCC
+        return reviews.to_dict(), ECode.SUCC
 
     def delete_review(self):
+        """删除订单评价"""
         review = Review.query.filter_by(id=self.order_id, deleted=False).first()
         if not review:
             raise BusinessValidationError("Review not found", ECode.NOTFOUND)
@@ -472,10 +479,11 @@ class OrderReviewListEntity:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
 
     def reply_review(self, reply):
+        """商家回复"""
         review = Review.query.filter_by(id=self.review_id, deleted=False).first()
         if not review:
             raise BusinessValidationError("Review not found", ECode.NOTFOUND)
-        if review.restaurant_id != self.current_user.restaurt_id:
+        if review.restaurant_id != self.current_user.id:
             raise BusinessValidationError("Permission denied", ECode.FORBID)
         review.reply = reply
         review.reply_at = datetime.now()

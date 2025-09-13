@@ -13,7 +13,7 @@ def register_order_routes(api):
     api.add_resource(OrderRestaurantResource, '/orders/<int:order_id>/restaurant')  # 餐馆修改订单获取详情
     api.add_resource(OrderRiderResource, '/orders/<int:order_id>/rider')  # 骑手修改订单
     api.add_resource(OrderReviewResource, '/orders/<int:order_id>/review')  # 订单评价
-    api.add_resource(OrderReviewListResource, 'orders/<int:review_id>/reply')
+    api.add_resource(OrderReviewListResource, '/orders/reply/<int:review_id>')
 
     return [
         'api.OrderListResource',

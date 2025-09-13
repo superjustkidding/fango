@@ -5,7 +5,7 @@ from flask_restful import Resource
 from app.models.orders import Order
 from app.routes.jwt import admin_required, current_user, user_required, restaurant_required, rider_required
 from app.routes.orders.entities import OrderEntity, OrderItemEntity, OrderReviewEntity, OrderReviewListEntity
-from app.schemas.orders.orders_schema import OrderSchemas, OrderUpdateSchemas, OrderAssignmentSchema, ReviewBase, \
+from app.schemas.orders.orders_schema import OrderSchema, OrderUpdateSchema, OrderAssignmentSchema, ReviewSchema, \
     ReviewRestaurantSchema
 from app.utils.validation import validate_request
 
@@ -41,7 +41,7 @@ class OrderListResource(Resource):
     @user_required
     def post(self):
         """创建新订单"""
-        data = validate_request(OrderSchemas, request.get_json())
+        data = validate_request(OrderSchema, request.get_json())
         entity = OrderEntity(current_user=current_user)
         return entity.create_order(data)
 
@@ -58,7 +58,7 @@ class OrderResource(Resource):
     @admin_required
     def put(self, order_id):
         """更新订单状态"""
-        data = validate_request(OrderUpdateSchemas, request.get_json())
+        data = validate_request(OrderUpdateSchema, request.get_json())
         entity = OrderEntity(current_user=current_user)
         return entity.update_order_status(order_id, data['status'], data.get('note'))
 
@@ -80,7 +80,7 @@ class OrderRestaurantResource(Resource):
     @restaurant_required
     def put(self, order_id):
         """餐馆更新订单状态"""
-        data = validate_request(OrderUpdateSchemas, request.get_json())
+        data = validate_request(OrderUpdateSchema, request.get_json())
         entity = OrderEntity(current_user=current_user)
         return entity.update_order_status(order_id, data['status'], data.get('note'))
 
@@ -90,7 +90,7 @@ class OrderRiderResource(Resource):
     @rider_required
     def put(self, order_id):
         """骑手更新订单状态"""
-        data = validate_request(OrderUpdateSchemas, request.get_json())
+        data = validate_request(OrderUpdateSchema, request.get_json())
         entity = OrderEntity(current_user=current_user)
         return entity.update_order_status(order_id, data['status'], data.get('note'))
 
@@ -141,11 +141,11 @@ class OrderReviewResource(Resource):
 
     @user_required
     def post(self, order_id):
-        data = validate_request(ReviewBase, request.get_json())
+        data = validate_request(ReviewSchema, request.get_json())
         entity = OrderReviewEntity(
             current_user=current_user,
             order_id=order_id)
-        return entity.create_review(data.get('review_id'))
+        return entity.create_review(data)
 
     @user_required
     def get(self, order_id):
@@ -156,12 +156,12 @@ class OrderReviewResource(Resource):
 
     @user_required
     def put(self, order_id):
-        data = validate_request(ReviewBase, request.get_json())
+        data = validate_request(ReviewSchema, request.get_json())
         entity = OrderReviewEntity(
             current_user=current_user,
             order_id=order_id
         )
-        return entity.update_review(data.get('review_id'))
+        return entity.update_review(data)
 
     @user_required
     def delete(self, order_id):
