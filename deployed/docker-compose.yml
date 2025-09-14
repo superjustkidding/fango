@@ -53,6 +53,8 @@ services:
       - fango-network
     command: /start-celery-beat.sh
 
+
 networks:
   fango-network:
     external: true  # 使用外部网络
+    name: fango-network  # 明确指定网络名称

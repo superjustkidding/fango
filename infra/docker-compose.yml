@@ -133,4 +133,5 @@ services:
 
 networks:
   fango-network:
+    name: fango-network  # 明确指定网络名称
     driver: bridge
