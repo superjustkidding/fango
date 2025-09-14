@@ -2,14 +2,21 @@ production:
   # base config
   DEBUG: False
   SECRET_KEY: 'your_prod_secret'
-  SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://admin:123456@192.168.1.76:3306/fango'
+  SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://admin:123456@host.docker.internal:3306/fango'  # 使用 host.docker.internal 访问宿主机 MySQL
 
-  #rabbitmq config
+  # rabbitmq config - 使用容器名称和正确的凭据
   SQLALCHEMY_TRACK_MODIFICATIONS: False
-  CELERY_BROKER_URL: 'amqp://admin:admin123@192.168.3.66:5672//'
-  CELERY_RESULT_BACKEND: 'redis://192.168.3.66:6379/0'
+  CELERY_BROKER_URL: 'amqp://admin:admin123@fango-rabbitmq:5672//'  # 使用容器名称和正确的凭据
+  CELERY_RESULT_BACKEND: 'redis://fango-redis:6379/0'  # 使用容器名称
   CELERY_TIMEZONE: 'Asia/Shanghai'
   CELERY_ENABLE_UTC: True
+
+  # redis config - 使用容器名称
+  REDIS_HOST: 'fango-redis'  # 使用容器名称
+  REDIS_PORT: 6379
+  REDIS_DB: 2
+  REDIS_PASSWORD: None
+
   # upload files
   UPLOAD_FOLDER: 'uploads/images'
   MAX_UPLOAD_LENGTH: 16777216  # 16MB
@@ -27,8 +34,8 @@ production:
   LOG_TO_MONGODB: true
   LOG_DIR: 'logs'
 
-  # MongoDB config
-  MONGODB_URI: 'mongodb://192.168.3.66:27017/'
+  # MongoDB config - 使用容器名称
+  MONGODB_URI: 'mongodb://fango-mongodb:27017/'  # 使用容器名称
   MONGODB_DB_NAME: 'fango_logs'
   MONGODB_LOG_COLLECTION: 'app_logs'
 

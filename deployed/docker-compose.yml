@@ -6,14 +6,17 @@ services:
     volumes:
       - ..:/app
       - ./logs:/app/logs
+      - ./uploads:/app/uploads
     env_file:
-      - ../.env  # 引用根目录的 .env 文件
+      - ../.env
     environment:
       - FLASK_APP=app/__init__.py
-      - FLASK_ENV=${DEVELOPMENT:-development}  # 使用 .env 中的 DEVELOPMENT 变量作为 FLASK_ENV
+      - FLASK_ENV=${DEVELOPMENT:-production}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # 添加 host.docker.internal 解析
     restart: unless-stopped
     networks:
-      - fango-network
+      - fango-infra-network  # 连接到基础设施网络
     command: /start-web.sh
 
   celery-worker:
@@ -22,13 +25,15 @@ services:
       - ..:/app
       - ./logs:/app/logs
     env_file:
-      - ../.env  # 引用根目录的 .env 文件
+      - ../.env
     environment:
       - FLASK_APP=app/__init__.py
-      - FLASK_ENV=${DEVELOPMENT:-development}  # 使用 .env 中的 DEVELOPMENT 变量作为 FLASK_ENV
+      - FLASK_ENV=${DEVELOPMENT:-production}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # 添加 host.docker.internal 解析
     restart: unless-stopped
     networks:
-      - fango-network
+      - fango-infra-network  # 连接到基础设施网络
     command: /start-celery-worker.sh
 
   celery-beat:
@@ -37,18 +42,17 @@ services:
       - ..:/app
       - ./logs:/app/logs
     env_file:
-      - ../.env  # 引用根目录的 .env 文件
+      - ../.env
     environment:
       - FLASK_APP=app/__init__.py
-      - FLASK_ENV=${DEVELOPMENT:-development}  # 使用 .env 中的 DEVELOPMENT 变量作为 FLASK_ENV
+      - FLASK_ENV=${DEVELOPMENT:-production}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # 添加 host.docker.internal 解析
     restart: unless-stopped
     networks:
-      - fango-network
+      - fango-infra-network  # 连接到基础设施网络
     command: /start-celery-beat.sh
 
 networks:
-  fango-network:
-    driver: bridge
-
-volumes:
-  logs:
+  fango-infra-network:
+    external: true  # 使用外部网络
