@@ -51,28 +51,7 @@ wait_for_service $REDIS_HOST $REDIS_PORT "Redis" 30
 wait_for_service $RABBITMQ_HOST $RABBITMQ_PORT "RabbitMQ" 30
 wait_for_service $MONGODB_HOST $MONGODB_PORT "MongoDB" 30
 
-# Web 服务特定操作
-echo "运行数据库迁移..."
-flask db upgrade
-
-echo "创建管理员用户..."
-flask create-admin
-
+# 启动 WebSocket 服务
+echo "启动 WebSocket 服务..."
 echo "当前环境: $FLASK_ENV"
-if [ "$FLASK_ENV" = "development" ]; then
-    echo "启动开发服务器..."
-    echo "Web服务运行在端口 5000..."
-    echo "WebSocket服务运行在端口 8000..."
-
-    # 同时启动 Web 服务和 WebSocket 服务
-    # 使用后台进程启动 WebSocket 服务
-    flask run-with-websocket --host=0.0.0.0 --port=8000 &
-
-    # 启动 Web 服务（前台运行）
-    exec flask run --host=0.0.0.0 --port=5000
-else
-    echo "启动生产服务器..."
-    # 生产环境使用支持 WebSocket 的服务器
-    # 使用 eventlet worker 同时处理 HTTP 和 WebSocket
-    exec gunicorn -w 4 -b 0.0.0.0:5000 -k eventlet --access-logfile - --error-logfile - run:app
-fi
+exec flask run-with-websocket --host=0.0.0.0 --port=8000

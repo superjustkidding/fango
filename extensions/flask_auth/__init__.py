@@ -5,7 +5,7 @@
 __version__ = '0.0.1'
 
 import logging
-import jwt as pyjwt
+import flask_jwt_extended as pyjwt
 from datetime import datetime, timedelta
 from functools import wraps
 

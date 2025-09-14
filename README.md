@@ -40,6 +40,12 @@ $ docker-compose -f deployed/docker-compose.yml exec celery-worker bash
 
 ### 在容器内测试任务
 ```sh
-$ python -c "from tasks.db_tasks import update_coupon_status; update_coupon_status()"
+$ python -c from tasks.db_tasks import update_coupon_status; update_coupon_status()
 ```
 
+
+### 本地测试解决celery启动
+```sh
+$ celery -A tasks.celery_app:celery worker --pool=solo --loglevel=info
+$ celery -A tasks.celery_app:celery beat --loglevel=info
+```

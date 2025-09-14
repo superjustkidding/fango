@@ -17,7 +17,30 @@ services:
     restart: unless-stopped
     networks:
       - fango-network
-    command: /start-web.sh
+    command: /start-web.sh  # 只启动 Web 服务
+
+  websocket:
+    build: ..
+    ports:
+      - "8000:8000"  # WebSocket 服务端口
+    env_file:
+      - ../.env
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - MYSQL_HOST=mysql
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
+      - MONGODB_HOST=mongodb
+    restart: unless-stopped
+    networks:
+      - fango-network
+    depends_on:
+      - mysql
+      - redis
+      - rabbitmq
+      - mongodb
+    command: flask run-with-websocket --host=0.0.0.0 --port=8000
 
   celery-worker:
     build: ..
