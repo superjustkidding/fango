@@ -16,7 +16,7 @@ services:
       - "host.docker.internal:host-gateway"  # 添加 host.docker.internal 解析
     restart: unless-stopped
     networks:
-      - fango-infra-network  # 连接到基础设施网络
+      - fango-network
     command: /start-web.sh
 
   celery-worker:
@@ -33,7 +33,7 @@ services:
       - "host.docker.internal:host-gateway"  # 添加 host.docker.internal 解析
     restart: unless-stopped
     networks:
-      - fango-infra-network  # 连接到基础设施网络
+      - fango-network
     command: /start-celery-worker.sh
 
   celery-beat:
@@ -50,9 +50,9 @@ services:
       - "host.docker.internal:host-gateway"  # 添加 host.docker.internal 解析
     restart: unless-stopped
     networks:
-      - fango-infra-network  # 连接到基础设施网络
+      - fango-network
     command: /start-celery-beat.sh
 
 networks:
-  fango-infra-network:
+  fango-network:
     external: true  # 使用外部网络

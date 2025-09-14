@@ -11,7 +11,7 @@ services:
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
     networks:
-      - fango-infra-network
+      - fango-network
 
   # RabbitMQ 服务
   rabbitmq:
@@ -27,7 +27,7 @@ services:
     volumes:
       - ./rabbitmq/data:/var/lib/rabbitmq
     networks:
-      - fango-infra-network
+      - fango-network
 
   # MongoDB 服务
   mongodb:
@@ -42,7 +42,7 @@ services:
       - ./mongodb/data:/data/db
       - ./mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     networks:
-      - fango-infra-network
+      - fango-network
 
   # MongoDB Exporter
   mongodb-exporter:
@@ -54,7 +54,7 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/fango_logs
     networks:
-      - fango-infra-network
+      - fango-network
     depends_on:
       - mongodb
 
@@ -77,7 +77,7 @@ services:
     user: "65534:65534"  # Prometheus 通常使用 UID 65534 (nobody)
     restart: unless-stopped
     networks:
-      - fango-infra-network
+      - fango-network
     depends_on:
       - mongodb-exporter
 
@@ -93,7 +93,7 @@ services:
       - ./loki/data:/loki
     command: -config.file=/etc/loki/loki-config.yaml
     networks:
-      - fango-infra-network
+      - fango-network
 
   # Promtail - 日志收集代理
   promtail:
@@ -106,7 +106,7 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro  # 收集Docker容器日志
     command: -config.file=/etc/promtail/promtail-config.yaml
     networks:
-      - fango-infra-network
+      - fango-network
     depends_on:
       - loki
 
@@ -126,12 +126,11 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     networks:
-      - fango-infra-network
+      - fango-network
     depends_on:
       - prometheus
-      - mongodb  # 添加对 MongoDB 的直接依赖
-
+      - mongodb
 
 networks:
-  fango-infra-network:
+  fango-network:
     driver: bridge
