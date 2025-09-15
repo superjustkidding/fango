@@ -1,7 +1,11 @@
+version: '3.8'
+
 services:
   # Web 服务
   fango-web:
-    build: .
+    build:
+      context: ..  # 指向项目根目录
+      dockerfile: Dockerfile  # Dockerfile 在项目根目录
     container_name: fango-web
     restart: unless-stopped
     ports:
@@ -9,19 +13,21 @@ services:
     environment:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
-      - REDIS_HOST=fango-redis  # 连接到 infra 中的 Redis
-      - MONGODB_URI=mongodb://fango-mongodb:27017/  # 连接到 infra 中的 MongoDB
-      - CELERY_BROKER_URL=amqp://admin:admin123@fango-rabbitmq:5672//  # 连接到 infra 中的 RabbitMQ
     volumes:
-      - ./uploads:/app/uploads
-      - ./logs:/app/logs
-    command: python run.py
+      - ../uploads:/app/uploads  # 指向项目根目录下的 uploads
+      - ../logs:/app/logs        # 指向项目根目录下的 logs
+    command: >
+      sh -c "python -c 'from app import create_app, db; app = create_app(); app.app_context().push(); db.create_all()' &&
+      flask create-admin &&
+      python run.py"
     networks:
       - fango-network
 
   # WebSocket 服务
   fango-websocket:
-    build: .
+    build:
+      context: ..  # 指向项目根目录
+      dockerfile: Dockerfile
     container_name: fango-websocket
     restart: unless-stopped
     ports:
@@ -29,29 +35,25 @@ services:
     environment:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
-      - REDIS_HOST=fango-redis
-      - MONGODB_URI=mongodb://fango-mongodb:27017/
-      - CELERY_BROKER_URL=amqp://admin:admin123@fango-rabbitmq:5672//
     volumes:
-      - ./uploads:/app/uploads
-      - ./logs:/app/logs
+      - ../uploads:/app/uploads
+      - ../logs:/app/logs
     command: flask run-with-websocket --host=0.0.0.0 --port=8000
     networks:
       - fango-network
 
   # Celery Worker 服务
   fango-celery-worker:
-    build: .
+    build:
+      context: ..  # 指向项目根目录
+      dockerfile: Dockerfile
     container_name: fango-celery-worker
     restart: unless-stopped
     environment:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
-      - REDIS_HOST=fango-redis
-      - MONGODB_URI=mongodb://fango-mongodb:27017/
-      - CELERY_BROKER_URL=amqp://admin:admin123@fango-rabbitmq:5672//
     volumes:
-      - ./logs:/app/logs
+      - ../logs:/app/logs
     command: >
       sh -c "sleep 10 && 
       celery -A tasks.celery_app:celery worker 
@@ -64,18 +66,17 @@ services:
 
   # Celery Beat 服务
   fango-celery-beat:
-    build: .
+    build:
+      context: ..  # 指向项目根目录
+      dockerfile: Dockerfile
     container_name: fango-celery-beat
     restart: unless-stopped
     environment:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
-      - REDIS_HOST=fango-redis
-      - MONGODB_URI=mongodb://fango-mongodb:27017/
-      - CELERY_BROKER_URL=amqp://admin:admin123@fango-rabbitmq:5672//
     volumes:
-      - ./logs:/app/logs
-      - ./tasks/runtime:/app/tasks/runtime
+      - ../logs:/app/logs
+      - ../tasks/runtime:/app/tasks/runtime
     command: >
       sh -c "sleep 15 && 
       celery -A tasks.celery_app:celery beat 
@@ -85,24 +86,6 @@ services:
     networks:
       - fango-network
 
-  # 初始化管理员服务（运行一次后退出）
-  fango-init-admin:
-    build: .
-    container_name: fango-init-admin
-    environment:
-      - FLASK_ENV=production
-      - MYSQL_HOST=host.docker.internal
-      - REDIS_HOST=fango-redis
-      - MONGODB_URI=mongodb://fango-mongodb:27017/
-      - CELERY_BROKER_URL=amqp://admin:admin123@fango-rabbitmq:5672//
-    command: >
-      sh -c "sleep 20 && 
-      python -c 'from app import create_app, db; app = create_app(); app.app_context().push(); db.create_all()' && 
-      flask create-admin"
-    networks:
-      - fango-network
-
 networks:
   fango-network:
-    name: fango-network  # 明确指定网络名称
     external: true  # 使用外部网络（由 infra 创建）
