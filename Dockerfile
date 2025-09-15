@@ -8,14 +8,12 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV FLASK_APP=app/__init__.py
-# 注意：这里不设置 FLASK_ENV，让它从 .env 文件读取
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
     gcc \
     default-libmysqlclient-dev \
     pkg-config \
-    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件并安装
@@ -28,16 +26,11 @@ COPY . .
 # 创建日志目录
 RUN mkdir -p /app/logs
 
-# 复制启动脚本
-COPY deployed/start-web.sh /start-web.sh
-COPY deployed/start-celery-worker.sh /start-celery-worker.sh
-COPY deployed/start-celery-beat.sh /start-celery-beat.sh
-
-# 设置脚本权限
-RUN chmod +x /start-web.sh /start-celery-worker.sh /start-celery-beat.sh
+# 创建运行时目录
+RUN mkdir -p /app/tasks/runtime
 
 # 暴露端口
-EXPOSE 5000
+EXPOSE 5000 8000
 
 # 默认启动 Web 服务
-CMD ["/start-web.sh"]
+CMD ["python", "run.py"]
