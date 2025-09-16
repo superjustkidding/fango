@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   # Web 服务
@@ -97,3 +96,4 @@ services:
 networks:
   fango-network:
     external: true  # 使用外部网络（由 infra 创建）
+    name: infra_fango-network
