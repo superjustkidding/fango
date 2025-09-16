@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # Web 服务
   fango-web:
@@ -10,11 +12,16 @@ services:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
+      - MYSQL_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal: host-gateway"
     volumes:
       - ../uploads:/app/uploads  # 指向项目根目录下的 uploads
       - ../logs:/app/logs        # 指向项目根目录下的 logs
     command: >
-      sh -c "python run.py && flask create-admin"
+      sh -c "python -c 'from app import create_app, db; app = create_app(); app.app_context().push(); db.create_all()' &&
+      flask create-admin &&
+      python run.py"
     networks:
       - fango-network
 
@@ -29,6 +36,9 @@ services:
       - "8000:8000"
     environment:
       - FLASK_ENV=production
+      - MYSQL_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal: host-gateway"
     volumes:
       - ../uploads:/app/uploads
       - ../logs:/app/logs
@@ -45,6 +55,9 @@ services:
     restart: unless-stopped
     environment:
       - FLASK_ENV=production
+      - MYSQL_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal: host-gateway"
     volumes:
       - ../logs:/app/logs
     command: >
@@ -66,6 +79,9 @@ services:
     restart: unless-stopped
     environment:
       - FLASK_ENV=production
+      - MYSQL_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal: host-gateway"
     volumes:
       - ../logs:/app/logs
       - ../tasks/runtime:/app/tasks/runtime
