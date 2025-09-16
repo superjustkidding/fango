@@ -13,7 +13,7 @@ services:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
     extra_hosts:
-      - "host.docker.internal: host-gateway"
+      - "host.docker.internal:host-gateway"
     volumes:
       - ../uploads:/app/uploads  # 指向项目根目录下的 uploads
       - ../logs:/app/logs        # 指向项目根目录下的 logs
@@ -37,7 +37,7 @@ services:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
     extra_hosts:
-      - "host.docker.internal: host-gateway"
+      - "host.docker.internal:host-gateway"
     volumes:
       - ../uploads:/app/uploads
       - ../logs:/app/logs
@@ -56,7 +56,7 @@ services:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
     extra_hosts:
-      - "host.docker.internal: host-gateway"
+      - "host.docker.internal:host-gateway"
     volumes:
       - ../logs:/app/logs
     command: >
@@ -80,7 +80,7 @@ services:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
     extra_hosts:
-      - "host.docker.internal: host-gateway"
+      - "host.docker.internal:host-gateway"
     volumes:
       - ../logs:/app/logs
       - ../tasks/runtime:/app/tasks/runtime
