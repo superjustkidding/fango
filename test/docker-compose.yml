@@ -38,6 +38,8 @@ services:
       - "27017:27017"
     environment:
       - MONGO_INITDB_DATABASE=fango_logs
+      - wiredTigerCollectionBlockCompressor=zlib  # 使用更好的压缩
+      - wiredTigerCacheSizeGB=1  # 限制缓存大小
     volumes:
       - ./mongodb/data:/data/db
       - ./mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
