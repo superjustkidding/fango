@@ -1,0 +1,83 @@
+services:
+  # Web 服务
+  fango-web:
+    build:
+      context: ..  # 指向项目根目录
+      dockerfile: Dockerfile  # Dockerfile 在项目根目录
+    container_name: fango-web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ../uploads:/app/uploads  # 指向项目根目录下的 uploads
+      - ../logs:/app/logs        # 指向项目根目录下的 logs
+    command: >
+      sh -c "python run.py && flask create-admin"
+    networks:
+      - fango-network
+
+  # WebSocket 服务
+  fango-websocket:
+    build:
+      context: ..  # 指向项目根目录
+      dockerfile: Dockerfile
+    container_name: fango-websocket
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ../uploads:/app/uploads
+      - ../logs:/app/logs
+    command: flask run-with-websocket --host=0.0.0.0 --port=8000
+    networks:
+      - fango-network
+
+  # Celery Worker 服务
+  fango-celery-worker:
+    build:
+      context: ..  # 指向项目根目录
+      dockerfile: Dockerfile
+    container_name: fango-celery-worker
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ../logs:/app/logs
+    command: >
+      sh -c "sleep 10 && 
+      celery -A tasks.celery_app:celery worker 
+      --loglevel=info 
+      --queues=db_tasks,email_tasks 
+      --hostname=worker@%h 
+      --concurrency=4"
+    networks:
+      - fango-network
+
+  # Celery Beat 服务
+  fango-celery-beat:
+    build:
+      context: ..  # 指向项目根目录
+      dockerfile: Dockerfile
+    container_name: fango-celery-beat
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ../logs:/app/logs
+      - ../tasks/runtime:/app/tasks/runtime
+    command: >
+      sh -c "sleep 15 && 
+      celery -A tasks.celery_app:celery beat 
+      --loglevel=info 
+      --pidfile=/app/tasks/runtime/celery_beat.pid 
+      --schedule=/app/tasks/runtime/celery_beat_schedule"
+    networks:
+      - fango-network
+
+networks:
+  fango-network:
+    external: true  # 使用外部网络（由 infra 创建）

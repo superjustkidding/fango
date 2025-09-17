@@ -1,0 +1,139 @@
+services:
+  # Redis 服务
+  redis:
+    image: redis:7-alpine
+    container_name: fango-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - fango-network
+
+  # RabbitMQ 服务
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: fango-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP 协议端口
+      - "15672:15672" # 管理界面端口
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    networks:
+      - fango-network
+
+  # MongoDB 服务
+  mongodb:
+    image: mongo:6.0
+    container_name: fango-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=fango_logs
+      - wiredTigerCollectionBlockCompressor=zlib  # 使用更好的压缩
+      - wiredTigerCacheSizeGB=1  # 限制缓存大小
+    volumes:
+      - ./mongodb/data:/data/db
+      - ./mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - fango-network
+
+  # MongoDB Exporter
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.39
+    container_name: fango-mongodb-exporter
+    restart: unless-stopped
+    ports:
+      - "9216:9216"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/fango_logs
+    networks:
+      - fango-network
+    depends_on:
+      - mongodb
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: fango-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/data:/prometheus
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.enable-lifecycle'
+    user: "65534:65534"  # Prometheus 通常使用 UID 65534 (nobody)
+    restart: unless-stopped
+    networks:
+      - fango-network
+    depends_on:
+      - mongodb-exporter
+
+  # Loki - 日志聚合系统
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: fango-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/config:/etc/loki
+      - ./loki/data:/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    networks:
+      - fango-network
+
+  # Promtail - 日志收集代理
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: fango-promtail
+    restart: unless-stopped
+    volumes:
+      - ./promtail/config:/etc/promtail
+      - /var/log:/var/log:ro  # 收集系统日志
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro  # 收集Docker容器日志
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks:
+      - fango-network
+    depends_on:
+      - loki
+
+  # Grafana 服务
+  grafana:
+    image: grafana/grafana-enterprise:9.5.6  # 企业版支持更多插件
+    container_name: fango-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-mongodb-datasource  # 安装 MongoDB 数据源插件
+      - GF_DATASOURCE_MONGODB_ENABLED=true
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - fango-network
+    depends_on:
+      - prometheus
+      - mongodb
+
+networks:
+  fango-network:
+    name: fango-network  # 明确指定网络名称
+    driver: bridge
