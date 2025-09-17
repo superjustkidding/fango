@@ -3,13 +3,13 @@
 
 flask:
   secret_key: 'your-secret-key-here'
-  sqlalchemy_database_uri: 'mysql+pymysql://admin:123456@192.168.3.66:3306/fango'
+  sqlalchemy_database_uri: 'mysql+pymysql://admin:123456@192.168.1.76:3306/fango'
   sqlalchemy_track_modifications: false
 
 # Celery 配置
 celery:
-  broker_url: "amqp://admin:admin123@192.168.3.66:5672//"   # RabbitMQ
-  result_backend: "redis://192.168.3.66:6379/0"          # Redis
+  broker_url: "amqp://admin:admin123@192.168.1.76:5672//"   # RabbitMQ
+  result_backend: "redis://192.168.1.76:6379/0"          # Redis
   timezone: 'Asia/Shanghai'
   enable_utc: true
 

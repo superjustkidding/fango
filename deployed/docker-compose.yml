@@ -12,6 +12,8 @@ services:
     environment:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -36,6 +38,7 @@ services:
     environment:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
+      - REDIS_HOST=redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -55,6 +58,7 @@ services:
     environment:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
+      - REDIS_HOST=redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -79,6 +83,7 @@ services:
     environment:
       - FLASK_ENV=production
       - MYSQL_HOST=host.docker.internal
+      - REDIS_HOST=redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -96,4 +101,4 @@ services:
 networks:
   fango-network:
     external: true  # 使用外部网络（由 infra 创建）
-    name: infra_fango-network
+    name: fango-network
