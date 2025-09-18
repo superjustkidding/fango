@@ -29,19 +29,19 @@ beat_schedule:
 
   update_coupon_status:
     task: 'tasks.db_tasks.update_coupon_status'
-    schedule: '* * * * *'  # 每小时的第0分钟
+    schedule: '0 9 * * *'  # 每天9:00 (crontab格式)
     options:
       queue: 'db_tasks'
 
   update_restaurant_sales:
     task: 'tasks.db_tasks.update_restaurant_sales'
-    schedule: '* * * * *'   # 每小时的第5分钟
+    schedule: '0 9 * * *'   # 每天9:00 (crontab格式)
     options:
       queue: 'db_tasks'
 
   user_daily_coupon:
     task: 'tasks.db_tasks.user_daily_coupon'
-    schedule: '* * * * *'  # 每小时的第5分钟
+    schedule: '0 9 * * *'  # 每天9:00 (crontab格式)
     options:
       queue: 'db_tasks'
 
