@@ -1,7 +1,7 @@
 services:
   # Redis 服务
   redis:
-    image: redis:7-alpine
+    image: registry.cn-hangzhou.aliyuncs.com/library/redis:7-alpine
     container_name: fango-redis
     restart: unless-stopped
     ports:
@@ -15,7 +15,7 @@ services:
 
   # RabbitMQ 服务
   rabbitmq:
-    image: rabbitmq:3-management
+    image: registry.cn-hangzhou.aliyuncs.com/library/rabbitmq:3-management
     container_name: fango-rabbitmq
     restart: unless-stopped
     ports:
@@ -31,7 +31,7 @@ services:
 
   # MongoDB 服务
   mongodb:
-    image: mongo:6.0
+    image: registry.cn-hangzhou.aliyuncs.com/library/mongo:6.0
     container_name: fango-mongodb
     restart: unless-stopped
     ports:
@@ -46,7 +46,7 @@ services:
 
   # portainer服务
   portainer:
-    image: portainer/portainer-ce:latest
+    image: registry.cn-hangzhou.aliyuncs.com/portainer/portainer-ce:latest
     container_name: portainer
     restart: always
     ports:
