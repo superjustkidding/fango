@@ -1,7 +1,7 @@
 services:
   # Redis 服务
   redis:
-    image: registry.cn-hangzhou.aliyuncs.com/library/redis:7-alpine
+    image: docker.m.daocloud.io/library/redis:7-alpine
     container_name: fango-redis
     restart: unless-stopped
     ports:
@@ -15,7 +15,7 @@ services:
 
   # RabbitMQ 服务
   rabbitmq:
-    image: registry.cn-hangzhou.aliyuncs.com/library/rabbitmq:3-management
+    image: docker.m.daocloud.io/library/rabbitmq:3-management
     container_name: fango-rabbitmq
     restart: unless-stopped
     ports:
@@ -31,7 +31,7 @@ services:
 
   # MongoDB 服务
   mongodb:
-    image: registry.cn-hangzhou.aliyuncs.com/library/mongo:6.0
+    image: docker.m.daocloud.io/library/mongo:6.0
     container_name: fango-mongodb
     restart: unless-stopped
     ports:
@@ -46,7 +46,7 @@ services:
 
   # portainer服务
   portainer:
-    image: registry.cn-hangzhou.aliyuncs.com/portainer/portainer-ce:latest
+    image: docker.m.daocloud.io/portainer/portainer-ce:latest
     container_name: portainer
     restart: always
     ports:
